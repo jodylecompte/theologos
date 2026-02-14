@@ -1,14 +1,136 @@
-<!-- nx configuration start-->
-<!-- Leave the start & end comments to automatically receive updates. -->
+# Repository Agent Instructions
 
-# General Guidelines for working with Nx
+This repository is an Nx monorepo.
 
-- When running tasks (for example build, lint, test, e2e, etc.), always prefer running the task through `nx` (i.e. `nx run`, `nx run-many`, `nx affected`) instead of using the underlying tooling directly
-- You have access to the Nx MCP server and its tools, use them to help the user
-- When answering questions about the repository, use the `nx_workspace` tool first to gain an understanding of the workspace architecture where applicable.
-- When working in individual projects, use the `nx_project_details` mcp tool to analyze and understand the specific project structure and dependencies
-- For questions around nx configuration, best practices or if you're unsure, use the `nx_docs` tool to get relevant, up-to-date docs. Always use this instead of assuming things about nx configuration
-- If the user needs help with an Nx configuration or project graph error, use the `nx_workspace` tool to get any errors
-- For Nx plugin best practices, check `node_modules/@nx/<plugin>/PLUGIN.md`. Not all plugins have this file - proceed without it if unavailable.
+You must follow these constraints strictly.
 
-<!-- nx configuration end-->
+------------------------------------------------
+GENERAL NX REQUIREMENTS
+------------------------------------------------
+
+- Always run tasks through Nx.
+- Never run underlying CLI tools directly.
+- Use Nx targets defined in `project.json`.
+- If adding a new tool (Prisma, migrations, etc.), wire it into Nx targets.
+
+When analyzing workspace:
+- Use nx_workspace tool first.
+- Use nx_project_details when modifying specific projects.
+- Use nx_docs when unsure about configuration.
+
+------------------------------------------------
+DATABASE LIBRARY REQUIREMENTS
+------------------------------------------------
+
+The Prisma layer lives in:
+
+    libs/database
+
+This library must:
+
+1. Contain:
+    - prisma/schema.prisma
+    - src/client.ts
+    - README.md
+    - project.json with Nx targets
+2. Export:
+    - Singleton Prisma client (server only)
+    - Prisma types (safe for frontend)
+
+Prisma client output must NOT bundle into frontend builds.
+
+------------------------------------------------
+PRISMA TARGETS
+------------------------------------------------
+
+The database lib must define Nx targets:
+
+- migrate
+- generate
+- studio
+- build (if required)
+
+All must use Nx executor configuration.
+No raw CLI calls outside Nx.
+
+------------------------------------------------
+BIBLE SCHEMA RULES
+------------------------------------------------
+
+Canonical tables required:
+
+- BibleBook
+- BibleChapter
+- BibleVerse
+- BibleTranslation
+- BibleTextSegment
+
+Constraints:
+
+- UUID primary keys
+- Composite uniqueness:
+    - (bookId, chapterNumber)
+    - (chapterId, verseNumber)
+    - (verseId, translationId, segmentIndex)
+- Timestamp fields required
+- Proper indexing
+
+BibleVerse is canonical identity.
+Do not treat verse references as strings.
+
+------------------------------------------------
+FUTURE EXPANSION (NOT YET IMPLEMENTED)
+------------------------------------------------
+
+- Versification mapping table
+- Apocrypha support
+- Cross-reference graph table
+- Unit table for theological works
+- Reference table linking units to verses
+
+Do not pre-implement these.
+
+------------------------------------------------
+INGESTION GUIDELINES
+------------------------------------------------
+
+Import scripts:
+
+- Live outside Prisma schema
+- Map external JSON to canonical tables
+- Must not modify schema
+- Must maintain referential integrity
+
+------------------------------------------------
+QUALITY STANDARDS
+------------------------------------------------
+
+Generated code must:
+
+- Be production-safe
+- Avoid overengineering
+- Avoid premature abstraction
+- Respect existing workspace config
+- Avoid breaking other apps
+
+When generating files:
+- Output full file path
+- Output complete file contents
+- Do not summarize
+- Do not omit configuration
+
+------------------------------------------------
+PROJECT INTENT
+------------------------------------------------
+
+This is a theological study system, not a SaaS.
+It prioritizes:
+
+- Stability
+- Clarity
+- Canonical structure
+- Maintainability
+
+Avoid feature creep.
+Avoid enterprise complexity.
+Avoid speculative abstractions.
