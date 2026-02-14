@@ -28,7 +28,8 @@
           "outExtension": {
             ".js": ".js"
           }
-        }
+        },
+        "external": ["@prisma/client"]
       },
       "configurations": {
         "development": {},
@@ -44,21 +45,18 @@
       }
     },
     "serve": {
-      "continuous": true,
-      "executor": "@nx/js:node",
-      "defaultConfiguration": "development",
-      "dependsOn": ["build"],
+      "executor": "nx:run-commands",
       "options": {
-        "buildTarget": "api:build",
-        "runBuildTargetDependencies": false
-      },
-      "configurations": {
-        "development": {
-          "buildTarget": "api:build:development"
-        },
-        "production": {
-          "buildTarget": "api:build:production"
-        }
+        "command": "node -r @swc-node/register apps/api/src/main.ts",
+        "cwd": "{workspaceRoot}",
+        "readyWhen": "ready"
+      }
+    },
+    "serve:watch": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "nodemon --exec 'node -r @swc-node/register' apps/api/src/main.ts",
+        "cwd": "{workspaceRoot}"
       }
     },
     "test": {

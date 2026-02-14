@@ -52,7 +52,6 @@
       "defaultConfiguration": "production"
     },
     "serve": {
-      "dependsOn": ["api:serve"],
       "continuous": true,
       "executor": "@angular/build:dev-server",
       "configurations": {
@@ -63,10 +62,7 @@
           "buildTarget": "theologos:build:development"
         }
       },
-      "defaultConfiguration": "development",
-      "options": {
-        "proxyConfig": "apps/theologos/proxy.conf.json"
-      }
+      "defaultConfiguration": "development"
     },
     "extract-i18n": {
       "executor": "@angular/build:extract-i18n",

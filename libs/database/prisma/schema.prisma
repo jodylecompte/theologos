@@ -1,0 +1,128 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/__generated__"
+}
+
+model BibleBook {
+  id              String   @id @default(uuid())
+  canonicalName   String
+  abbreviation    String
+  testament       String
+  canonicalOrder  Int
+  chapters        BibleChapter[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([canonicalOrder])
+  @@index([testament])
+}
+
+model BibleChapter {
+  id                   String      @id @default(uuid())
+  book                 BibleBook   @relation(fields: [bookId], references: [id])
+  bookId               String
+  chapterNumber        Int
+  canonicalOrderIndex  Int
+  verses               BibleVerse[]
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  @@unique([bookId, chapterNumber])
+  @@index([canonicalOrderIndex])
+}
+
+model BibleVerse {
+  id                   String      @id @default(uuid())
+  chapter              BibleChapter @relation(fields: [chapterId], references: [id])
+  chapterId            String
+  verseNumber          Int
+  canonicalOrderIndex  Int
+  textSegments         BibleTextSegment[]
+  references           Reference[]
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  @@unique([chapterId, verseNumber])
+  @@index([canonicalOrderIndex])
+}
+
+model BibleTranslation {
+  id           String   @id @default(uuid())
+  name         String
+  abbreviation String   @unique
+  year         Int?
+  license      String
+  textSegments BibleTextSegment[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([abbreviation])
+}
+
+model BibleTextSegment {
+  id            String           @id @default(uuid())
+  verse         BibleVerse       @relation(fields: [verseId], references: [id])
+  verseId       String
+  translation   BibleTranslation @relation(fields: [translationId], references: [id])
+  translationId String
+  segmentIndex  Int
+  segmentLabel  String?
+  contentText   String
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@unique([verseId, translationId, segmentIndex])
+  @@index([verseId])
+  @@index([translationId])
+}
+
+model Work {
+  id        String     @id @default(uuid())
+  title     String
+  author    String?
+  type      String
+  tradition String?
+  units     WorkUnit[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([type])
+  @@index([tradition])
+}
+
+model WorkUnit {
+  id            String      @id @default(uuid())
+  work          Work        @relation(fields: [workId], references: [id])
+  workId        String
+  parentUnit    WorkUnit?   @relation("UnitHierarchy", fields: [parentUnitId], references: [id])
+  parentUnitId  String?
+  children      WorkUnit[]  @relation("UnitHierarchy")
+  type          String
+  positionIndex Int
+  title         String?
+  contentText   String
+  references    Reference[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([workId])
+  @@index([parentUnitId])
+  @@index([type])
+}
+
+model Reference {
+  id            String     @id @default(uuid())
+  sourceUnit    WorkUnit   @relation(fields: [sourceUnitId], references: [id])
+  sourceUnitId  String
+  bibleVerse    BibleVerse @relation(fields: [bibleVerseId], references: [id])
+  bibleVerseId  String
+  createdAt     DateTime   @default(now())
+
+  @@index([sourceUnitId])
+  @@index([bibleVerseId])
+}

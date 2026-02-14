@@ -1,0 +1,5 @@
+# Prisma generated files are in node_modules/.prisma/
+# and don't need to be ignored here
+
+# Build output
+dist/
