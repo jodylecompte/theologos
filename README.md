@@ -12,20 +12,20 @@ This repository demonstrates a production-ready Angular monorepo with:
 
 - **2 Applications**
 
-  - `shop` - Angular e-commerce application with product listings and detail views
+  - `theologos` - Angular e-commerce application with product listings and detail views
   - `api` - Backend API with Docker support serving product data
 
 - **6 Libraries**
 
   - `@org/feature-products` - Product listing feature (Angular)
   - `@org/feature-product-detail` - Product detail feature (Angular)
-  - `@org/data` - Data access layer for shop features
+  - `@org/data` - Data access layer for theologos features
   - `@org/shared-ui` - Shared UI components
   - `@org/models` - Shared data models
   - `@org/products` - API product service library
 
 - **E2E Testing**
-  - `shop-e2e` - Playwright tests for the shop application
+  - `theologos-e2e` - Playwright tests for the theologos application
 
 ## 🚀 Quick Start
 
@@ -38,8 +38,8 @@ cd <your-repository-name>
 # (Note: You may need --legacy-peer-deps)
 npm install
 
-# Serve the Angular shop application (this will simultaneously serve the API backend)
-npx nx serve shop
+# Serve the Angular theologos application (this will simultaneously serve the API backend)
+npx nx serve theologos
 
 # ...or you can serve the API separately
 npx nx serve api
@@ -54,7 +54,7 @@ npx nx run-many -t test
 npx nx run-many -t lint
 
 # Run e2e tests
-npx nx e2e shop-e2e
+npx nx e2e theologos-e2e
 
 # Run tasks in parallel
 
@@ -73,7 +73,7 @@ This repository showcases several powerful Nx features:
 Enforces architectural constraints using tags. Each project has specific dependencies it can use:
 
 - `scope:shared` - Can be used by all projects
-- `scope:shop` - Shop-specific libraries
+- `scope:theologos` - theologos-specific libraries
 - `scope:api` - API-specific libraries
 - `type:feature` - Feature libraries
 - `type:data` - Data access libraries
@@ -86,7 +86,7 @@ Enforces architectural constraints using tags. Each project has specific depende
 npx nx graph
 
 # View a specific project's details
-npx nx show project shop --web
+npx nx show project theologos --web
 ```
 
 [Learn more about module boundaries →](https://nx.dev/features/enforce-module-boundaries)
@@ -116,10 +116,10 @@ End-to-end testing with Playwright is pre-configured:
 
 ```bash
 # Run e2e tests
-npx nx e2e shop-e2e
+npx nx e2e theologos-e2e
 
 # Run e2e tests in CI mode
-npx nx e2e-ci shop-e2e
+npx nx e2e-ci theologos-e2e
 ```
 
 [Learn more about E2E testing →](https://nx.dev/technologies/test-tools/playwright/introduction#e2e-testing)
@@ -160,15 +160,15 @@ This feature helps maintain a healthy CI pipeline by automatically detecting and
 
 ```
 ├── apps/
-│   ├── shop/           [scope:shop]    - Angular e-commerce app
-│   ├── shop-e2e/                       - E2E tests for shop
+│   ├── theologos/           [scope:theologos]    - Angular e-commerce app
+│   ├── theologos-e2e/                       - E2E tests for theologos
 │   └── api/            [scope:api]     - Backend API with Docker
 ├── libs/
-│   ├── shop/
-│   │   ├── feature-products/        [scope:shop,type:feature] - Product listing
-│   │   ├── feature-product-detail/  [scope:shop,type:feature] - Product details
-│   │   ├── data/                    [scope:shop,type:data]    - Data access
-│   │   └── shared-ui/               [scope:shop,type:ui]      - UI components
+│   ├── theologos/
+│   │   ├── feature-products/        [scope:theologos,type:feature] - Product listing
+│   │   ├── feature-product-detail/  [scope:theologos,type:feature] - Product details
+│   │   ├── data/                    [scope:theologos,type:data]    - Data access
+│   │   └── shared-ui/               [scope:theologos,type:ui]      - UI components
 │   ├── api/
 │   │   └── products/    [scope:api]    - Product service
 │   └── shared/
@@ -184,10 +184,10 @@ This repository uses tags to enforce module boundaries:
 
 | Project            | Tags                         | Can Import From              |
 | ------------------ | ---------------------------- | ---------------------------- |
-| `shop`             | `scope:shop`                 | `scope:shop`, `scope:shared` |
+| `theologos`             | `scope:theologos`                 | `scope:theologos`, `scope:shared` |
 | `api`              | `scope:api`                  | `scope:api`, `scope:shared`  |
-| `feature-products` | `scope:shop`, `type:feature` | `scope:shop`, `scope:shared` |
-| `data`             | `scope:shop`, `type:data`    | `scope:shared`               |
+| `feature-products` | `scope:theologos`, `type:feature` | `scope:theologos`, `scope:shared` |
+| `data`             | `scope:theologos`, `type:data`    | `scope:shared`               |
 | `models`           | `scope:shared`, `type:data`  | Nothing (base library)       |
 
 ## 📚 Useful Commands
@@ -196,12 +196,12 @@ This repository uses tags to enforce module boundaries:
 # Project exploration
 npx nx graph                                    # Interactive dependency graph
 npx nx list                                     # List installed plugins
-npx nx show project shop --web                 # View project details
+npx nx show project theologos --web                 # View project details
 
 # Development
-npx nx serve shop                              # Serve Angular app
+npx nx serve theologos                              # Serve Angular app
 npx nx serve api                               # Serve backend API
-npx nx build shop                              # Build Angular app
+npx nx build theologos                              # Build Angular app
 npx nx test data                               # Test a specific library
 npx nx lint feature-products                   # Lint a specific library
 

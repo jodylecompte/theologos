@@ -1,0 +1,170 @@
+// Canonical Bible backbone schema for PostgreSQL.
+// Scope intentionally excludes morphology, manuscripts, textual variants,
+// and alternate versification mappings.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Testament classification for canonical books.
+enum Testament {
+  OT
+  NT
+}
+
+model BibleBook {
+  // Stable UUID identity for the canonical book.
+  id String @id @default(uuid()) @db.Uuid
+
+  // Human-readable canonical name, e.g. "Genesis", "John".
+  canonicalName String
+
+  // Conventional abbreviation, e.g. "Gen", "Jn".
+  abbreviation String
+
+  // Old or New Testament.
+  testament Testament
+
+  // Position in canonical order (1..66 for current scope).
+  canonicalOrder Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relation to child chapters.
+  chapters BibleChapter[]
+
+  // Protect against duplicate book identities.
+  @@unique([canonicalName])
+  @@unique([abbreviation])
+  @@unique([canonicalOrder])
+  @@index([testament, canonicalOrder])
+}
+
+model BibleChapter {
+  // Stable UUID identity for the canonical chapter.
+  id String @id @default(uuid()) @db.Uuid
+
+  // Parent canonical book.
+  bookId String   @db.Uuid
+  book   BibleBook @relation(fields: [bookId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  // Chapter number as displayed in references (e.g. 1, 2, 3...).
+  chapterNumber Int
+
+  // Globally sortable canonical chapter sequence index.
+  canonicalOrderIndex Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relation to child verses.
+  verses BibleVerse[]
+
+  // A chapter number is unique within a given book.
+  @@unique([bookId, chapterNumber])
+
+  // Canonical sequence index must be globally unique.
+  @@unique([canonicalOrderIndex])
+
+  // Optimized lookup for common book/chapter traversal.
+  @@index([bookId, canonicalOrderIndex])
+}
+
+model BibleVerse {
+  // Stable UUID identity for the canonical verse.
+  // This is the primary foreign key target for the broader domain.
+  id String @id @default(uuid()) @db.Uuid
+
+  // Parent canonical chapter.
+  chapterId String      @db.Uuid
+  chapter   BibleChapter @relation(fields: [chapterId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  // Verse number as displayed in references (e.g. 1, 2, 3...).
+  verseNumber Int
+
+  // Globally sortable canonical verse sequence index.
+  canonicalOrderIndex Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Translation-specific verse text segments.
+  textSegments BibleTextSegment[]
+
+  // A verse number is unique within a given chapter.
+  @@unique([chapterId, verseNumber])
+
+  // Canonical sequence index must be globally unique.
+  @@unique([canonicalOrderIndex])
+
+  // Fast lookup and traversal within chapter and canonical sequence.
+  @@index([chapterId, canonicalOrderIndex])
+}
+
+model BibleTranslation {
+  // Stable UUID identity for the translation metadata row.
+  id String @id @default(uuid()) @db.Uuid
+
+  // Full translation name, e.g. "English Standard Version".
+  name String
+
+  // Short code, e.g. "ESV", "KJV", "NIV".
+  abbreviation String
+
+  // Publication year (optional when unknown or mixed editions).
+  year Int?
+
+  // License string/identifier for legal display and distribution logic.
+  license String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relation to translation-specific text layers.
+  textSegments BibleTextSegment[]
+
+  // Keep translation identities and shortcuts unique.
+  @@unique([name])
+  @@unique([abbreviation])
+  @@index([abbreviation, year])
+}
+
+model BibleTextSegment {
+  // Stable UUID identity for a translation-specific verse segment.
+  id String @id @default(uuid()) @db.Uuid
+
+  // Canonical verse identity (stable across translations).
+  verseId String    @db.Uuid
+  verse   BibleVerse @relation(fields: [verseId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  // Translation metadata identity.
+  translationId String           @db.Uuid
+  translation   BibleTranslation @relation(fields: [translationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  // Segment ordering within verse for a specific translation.
+  // Use 0 when the verse is not split into labeled sub-segments.
+  segmentIndex Int
+
+  // Optional human-facing segment label for split verses (e.g., "a", "b").
+  segmentLabel String?
+
+  // Actual translation text content for this segment.
+  contentText String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Exactly one segment at each index for each verse+translation pair.
+  @@unique([verseId, translationId, segmentIndex])
+
+  // Common retrieval patterns: all segments for a verse in one translation,
+  // and all verses for one translation.
+  @@index([translationId, verseId])
+  @@index([verseId, translationId, segmentIndex])
+}
