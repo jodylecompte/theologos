@@ -6,6 +6,7 @@ import { BookSelectorComponent, type BookSelection } from './book-selector.compo
 interface BibleVerse {
   number: number;
   text: string;
+  paragraphStart?: boolean;
 }
 
 interface BibleChapterResponse {
@@ -74,7 +75,10 @@ export interface NavigationChange {
           <!-- Prose mode: flowing text with inline verse numbers -->
           <div class="chapter-content prose-mode">
             @for (verse of verses(); track verse.number) {
-              <span class="prose-verse" [id]="'verse-' + verse.number">
+              <span
+                class="prose-verse"
+                [class.paragraph-start]="verse.paragraphStart"
+                [id]="'verse-' + verse.number">
                 <sup class="prose-verse-number">{{ verse.number }}</sup>{{ verse.text }}
               </span>
             }
@@ -194,13 +198,12 @@ export interface NavigationChange {
     }
 
     .verse-number {
-      display: inline-block;
-      width: 2.5rem;
       font-weight: bold;
       color: #6c7890;
-      font-size: 0.85rem;
+      font-size: 0.75em;
       vertical-align: super;
       font-family: var(--font-sans);
+      margin-right: 0.25em;
     }
 
     .verse-text {
@@ -221,6 +224,12 @@ export interface NavigationChange {
 
     .prose-verse {
       display: inline;
+    }
+
+    .prose-verse.paragraph-start {
+      display: inline-block;
+      text-indent: 2em;
+      width: 100%;
     }
 
     .prose-verse:hover {

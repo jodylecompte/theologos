@@ -79,6 +79,7 @@ router.get('/:translation/:book/:chapter', async (req, res) => {
       text: verse.textSegments
         .map(segment => segment.contentText)
         .join('\n'),
+      paragraphStart: verse.paragraphStart,
     }));
 
     res.json({

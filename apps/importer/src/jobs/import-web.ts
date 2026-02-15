@@ -177,7 +177,7 @@ async function ensureChapters(bookId: string, chapterCount: number): Promise<voi
 async function ensureVerses(
   chapterId: string,
   chapterNumber: number,
-  verses: Array<{ verseNumber: number }>
+  verses: Array<{ verseNumber: number; paragraphStart: boolean }>
 ): Promise<void> {
   const existingVerses = await prisma.bibleVerse.findMany({
     where: { chapterId },
@@ -185,7 +185,18 @@ async function ensureVerses(
   });
 
   if (existingVerses.length === verses.length) {
-    return; // All verses exist
+    // All verses exist - update paragraphStart values
+    for (const verse of verses) {
+      const existingVerse = existingVerses.find(v => v.verseNumber === verse.verseNumber);
+      if (existingVerse && existingVerse.paragraphStart !== verse.paragraphStart) {
+        await prisma.bibleVerse.update({
+          where: { id: existingVerse.id },
+          data: { paragraphStart: verse.paragraphStart },
+        });
+      }
+    }
+    logger.info(`Updated paragraphStart flags for ${verses.length} verses in chapter ${chapterNumber}`);
+    return;
   }
 
   if (existingVerses.length > 0 && existingVerses.length !== verses.length) {
@@ -208,6 +219,7 @@ async function ensureVerses(
     chapterId,
     verseNumber: verse.verseNumber,
     canonicalOrderIndex: chapter.canonicalOrderIndex * 1000 + verse.verseNumber,
+    paragraphStart: verse.paragraphStart,
   }));
 
   await prisma.bibleVerse.createMany({
@@ -225,7 +237,7 @@ async function importTextSegments(
   translationId: string,
   chapters: Array<{
     chapterNumber: number;
-    verses: Array<{ verseNumber: number; text: string }>;
+    verses: Array<{ verseNumber: number; text: string; paragraphStart: boolean }>;
   }>
 ): Promise<number> {
   let totalSegments = 0;

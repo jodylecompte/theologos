@@ -42,6 +42,7 @@ model BibleVerse {
   chapterId            String
   verseNumber          Int
   canonicalOrderIndex  Int
+  paragraphStart       Boolean     @default(false)
   textSegments         BibleTextSegment[]
   references           Reference[]
   createdAt            DateTime     @default(now())

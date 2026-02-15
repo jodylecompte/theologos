@@ -17,6 +17,7 @@ export interface ParsedVerse {
   chapterNumber: number;
   verseNumber: number;
   text: string;
+  paragraphStart: boolean;
 }
 
 export interface ParsedChapter {
@@ -36,14 +37,28 @@ export interface ParsedBook {
  */
 export function parseWebBook(entries: WebJsonEntry[]): ParsedBook {
   const chapterMap = new Map<number, Map<number, string[]>>();
+  const paragraphStarts = new Set<string>(); // Track verses that start paragraphs
+  let nextVerseParagraphStart = false;
 
   for (const entry of entries) {
+    // Track paragraph start markers
+    if (entry.type === 'paragraph start') {
+      nextVerseParagraphStart = true;
+      continue;
+    }
+
     // Only process entries with actual text content
     if (!entry.value || entry.chapterNumber === undefined || entry.verseNumber === undefined) {
       continue;
     }
 
     const { chapterNumber, verseNumber, value } = entry;
+
+    // Mark this verse as paragraph start if we saw the marker
+    if (nextVerseParagraphStart) {
+      paragraphStarts.add(`${chapterNumber}:${verseNumber}`);
+      nextVerseParagraphStart = false;
+    }
 
     // Get or create chapter map
     let verseMap = chapterMap.get(chapterNumber);
@@ -80,11 +95,13 @@ export function parseWebBook(entries: WebJsonEntry[]): ParsedBook {
       const segments = verseMap.get(verseNumber)!;
       // Join segments with newline to preserve line breaks
       const text = segments.join('\n');
+      const paragraphStart = paragraphStarts.has(`${chapterNumber}:${verseNumber}`);
 
       verses.push({
         chapterNumber,
         verseNumber,
         text,
+        paragraphStart,
       });
     }
 
