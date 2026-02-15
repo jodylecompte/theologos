@@ -94,6 +94,14 @@
         "command": "node -r @swc-node/register apps/importer/src/jobs/import-web.ts --force",
         "cwd": "{workspaceRoot}"
       }
+    },
+    "import:wsc": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["^build"],
+      "options": {
+        "command": "node -r @swc-node/register apps/importer/src/jobs/import-wsc.ts",
+        "cwd": "{workspaceRoot}"
+      }
     }
   },
   "tags": ["scope:backend", "type:app"]

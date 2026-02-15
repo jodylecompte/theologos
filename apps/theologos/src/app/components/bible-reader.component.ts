@@ -1,5 +1,5 @@
-import { Component, inject, signal, viewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject, signal, viewChild, Input, Output, EventEmitter, AfterViewInit, effect, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { BookSelectorComponent, type BookSelection } from './book-selector.component';
 
@@ -25,6 +25,11 @@ interface BibleChapterResponse {
 }
 
 interface ChapterReference {
+  book: string;
+  chapter: number;
+}
+
+export interface NavigationChange {
   book: string;
   chapter: number;
 }
@@ -55,7 +60,7 @@ interface ChapterReference {
       @if (!loading() && verses().length > 0) {
         <div class="chapter-content">
           @for (verse of verses(); track verse.number) {
-            <div class="verse">
+            <div class="verse" [id]="'verse-' + verse.number">
               <span class="verse-number">{{ verse.number }}</span>
               <span class="verse-text">{{ verse.text }}</span>
             </div>
@@ -81,8 +86,6 @@ interface ChapterReference {
   `,
   styles: [`
     .bible-reader {
-      max-width: 800px;
-      margin: 0 auto;
       padding: 2rem;
       font-family: Georgia, serif;
     }
@@ -143,6 +146,14 @@ interface ChapterReference {
       white-space: pre-wrap;
     }
 
+    .verse.highlighted {
+      background-color: #ffeb3b;
+      transition: background-color 2s ease;
+      padding: 0.25rem;
+      margin: -0.25rem;
+      border-radius: 3px;
+    }
+
     .chapter-nav {
       display: flex;
       justify-content: space-between;
@@ -172,13 +183,23 @@ interface ChapterReference {
     }
   `]
 })
-export class BibleReaderComponent {
+export class BibleReaderComponent implements AfterViewInit {
   private http = inject(HttpClient);
   private selector = viewChild(BookSelectorComponent);
+  private platformId = inject(PLATFORM_ID);
+  private isBrowser = isPlatformBrowser(this.platformId);
 
   // API configuration
   private readonly apiUrl = 'http://localhost:3333/api/bible';
   private readonly translation = 'WEB';
+
+  // Inputs
+  @Input() initialBook?: string;
+  @Input() initialChapter?: number;
+  @Input() targetVerse?: number;
+
+  // Outputs
+  @Output() navigationChange = new EventEmitter<NavigationChange>();
 
   // Component state
   bookName = signal('Genesis');
@@ -189,13 +210,54 @@ export class BibleReaderComponent {
   error = signal<string | null>(null);
 
   constructor() {
+    // Set initial values from inputs or defaults
+    if (this.initialBook) {
+      this.bookName.set(this.initialBook);
+    }
+    if (this.initialChapter) {
+      this.chapterNumber.set(this.initialChapter);
+    }
+
+    // Setup scroll-to-verse effect (only in browser)
+    if (this.isBrowser) {
+      effect(() => {
+        const verse = this.targetVerse;
+        if (verse && this.verses().length > 0) {
+          setTimeout(() => {
+            const element = document.getElementById(`verse-${verse}`);
+            if (element) {
+              element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              element.classList.add('highlighted');
+              setTimeout(() => element.classList.remove('highlighted'), 2000);
+            }
+          }, 100);
+        }
+      });
+    }
+  }
+
+  ngAfterViewInit() {
     this.loadChapter();
+  }
+
+  ngOnChanges() {
+    // Handle changes to input properties
+    if (this.initialBook && this.initialBook !== this.bookName()) {
+      this.bookName.set(this.initialBook);
+    }
+    if (this.initialChapter && this.initialChapter !== this.chapterNumber()) {
+      this.chapterNumber.set(this.initialChapter);
+    }
+    if (this.initialBook || this.initialChapter) {
+      this.loadChapter();
+    }
   }
 
   onSelectionChange(selection: BookSelection) {
     this.bookName.set(selection.book);
     this.chapterNumber.set(selection.chapter);
     this.loadChapter();
+    this.navigationChange.emit({ book: selection.book, chapter: selection.chapter });
   }
 
   private async loadChapter() {
@@ -237,6 +299,7 @@ export class BibleReaderComponent {
     if (this.canGoPrevious()) {
       this.chapterNumber.update(ch => ch - 1);
       await this.loadChapter();
+      this.navigationChange.emit({ book: this.bookName(), chapter: this.chapterNumber() });
     }
   }
 
@@ -244,6 +307,7 @@ export class BibleReaderComponent {
     this.chapterNumber.update(ch => ch + 1);
     try {
       await this.loadChapter();
+      this.navigationChange.emit({ book: this.bookName(), chapter: this.chapterNumber() });
     } catch (err) {
       // If chapter doesn't exist, go back
       this.chapterNumber.update(ch => ch - 1);

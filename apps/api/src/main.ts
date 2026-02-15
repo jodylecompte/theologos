@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import bibleRouter from './routes/bible';
 import booksRouter from './routes/books';
+import wscRouter from './routes/wsc';
+import worksRouter from './routes/works';
 
 const host = process.env.HOST ?? 'localhost';
 const port = process.env.PORT ? Number(process.env.PORT) : 3333;
@@ -21,6 +23,8 @@ app.get('/', (_req, res) => {
 
 app.use('/api/bible', bibleRouter);
 app.use('/api/books', booksRouter);
+app.use('/api/works', worksRouter);
+app.use('/api/wsc', wscRouter); // Legacy endpoint, kept for backward compatibility
 
 app.listen(port, host, () => {
   console.log(`[ ready ] http://${host}:${port}`);
