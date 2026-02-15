@@ -16,22 +16,23 @@ import { CommonModule } from '@angular/common';
   `,
   styles: [`
     .app-footer {
-      background: #2c3e50;
-      color: rgba(255, 255, 255, 0.7);
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 1rem 2rem;
+      background: linear-gradient(180deg, rgba(16, 35, 58, 0.97) 0%, rgba(13, 29, 49, 0.98) 100%);
+      color: rgba(235, 242, 250, 0.78);
+      border-top: 1px solid rgba(255, 255, 255, 0.16);
+      padding: 0.9rem 2rem;
     }
 
     .footer-content {
-      max-width: 1600px;
+      max-width: 1440px;
       margin: 0 auto;
       text-align: center;
     }
 
     .footer-text {
       margin: 0;
-      font-size: 0.875rem;
-      font-weight: 400;
+      font-size: 0.86rem;
+      font-weight: 500;
+      letter-spacing: 0.03em;
     }
 
     @media (max-width: 640px) {

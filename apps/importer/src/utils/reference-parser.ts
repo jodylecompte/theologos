@@ -164,7 +164,6 @@ const BOOK_NAME_ALIASES: Record<string, string> = {
   'nah': 'Nahum',
   'na': 'Nahum',
   'hab': 'Habakkuk',
-  'hab': 'Habakkuk',
   'zeph': 'Zephaniah',
   'zep': 'Zephaniah',
   'hag': 'Haggai',

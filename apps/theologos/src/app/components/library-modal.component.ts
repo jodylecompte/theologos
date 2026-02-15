@@ -31,7 +31,7 @@ export interface WorkSelection {
     <div class="library-modal" (click)="close()">
       <div class="library-content" (click)="$event.stopPropagation()">
         <div class="library-header">
-          <h2>📚 Library</h2>
+          <h2>Library Catalog</h2>
           <button class="close-button" (click)="close()">✕</button>
         </div>
 
@@ -126,41 +126,43 @@ export interface WorkSelection {
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0, 0, 0, 0.6);
+      background: rgba(8, 18, 33, 0.65);
       display: flex;
       align-items: center;
       justify-content: center;
       z-index: 2000;
       padding: 1rem;
-      backdrop-filter: blur(4px);
+      backdrop-filter: blur(7px);
     }
 
     .library-content {
       background: white;
-      border-radius: 16px;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
       max-width: 1200px;
       width: 100%;
       max-height: 90vh;
       display: flex;
       flex-direction: column;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      box-shadow: var(--shadow-2);
       overflow: hidden;
     }
 
     .library-header {
       padding: 1.5rem 2rem;
-      border-bottom: 2px solid #e0e0e0;
+      border-bottom: 1px solid var(--border-subtle);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      background: linear-gradient(180deg, #f9fbff 0%, #eef3fa 100%);
     }
 
     .library-header h2 {
       margin: 0;
-      font-size: 1.75rem;
-      color: #2c3e50;
-      font-weight: 700;
+      font-family: var(--font-serif);
+      font-size: 1.62rem;
+      color: var(--text-strong);
+      font-weight: 600;
     }
 
     .close-button {
@@ -175,13 +177,13 @@ export interface WorkSelection {
     }
 
     .close-button:hover {
-      color: #333;
+      color: var(--text-strong);
     }
 
     .library-filters {
       padding: 1.5rem 2rem;
-      background: #f8f9fa;
-      border-bottom: 1px solid #e0e0e0;
+      background: #f5f8fc;
+      border-bottom: 1px solid var(--border-subtle);
       display: grid;
       grid-template-columns: 2fr 1fr 1fr 1fr;
       gap: 1rem;
@@ -194,18 +196,18 @@ export interface WorkSelection {
     }
 
     .filter-group label {
-      font-size: 0.875rem;
+      font-size: 0.79rem;
       font-weight: 600;
-      color: #495057;
+      color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.09em;
     }
 
     .filter-input,
     .filter-select {
       padding: 0.625rem 0.875rem;
-      border: 1px solid #ced4da;
-      border-radius: 6px;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
       font-size: 0.95rem;
       background: white;
       transition: all 0.2s;
@@ -214,8 +216,8 @@ export interface WorkSelection {
     .filter-input:focus,
     .filter-select:focus {
       outline: none;
-      border-color: #2c3e50;
-      box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
+      border-color: var(--brand-500);
+      box-shadow: 0 0 0 3px rgba(28, 79, 131, 0.14);
     }
 
     .library-body {
@@ -229,11 +231,11 @@ export interface WorkSelection {
       padding: 3rem;
       text-align: center;
       font-size: 1.1rem;
-      color: #666;
+      color: var(--text-muted);
     }
 
     .error {
-      color: #dc3545;
+      color: #ab2f2f;
     }
 
     .works-grid {
@@ -244,19 +246,20 @@ export interface WorkSelection {
 
     .work-card {
       background: white;
-      border: 2px solid #e0e0e0;
-      border-radius: 10px;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
       padding: 1.5rem;
       cursor: pointer;
       transition: all 0.2s;
       position: relative;
       overflow: hidden;
+      box-shadow: 0 4px 12px rgba(13, 28, 49, 0.05);
     }
 
     .work-card:hover {
-      border-color: #2c3e50;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-      transform: translateY(-2px);
+      border-color: var(--brand-500);
+      box-shadow: 0 14px 28px rgba(13, 28, 49, 0.14);
+      transform: translateY(-3px);
     }
 
     .work-type-badge {
@@ -264,38 +267,38 @@ export interface WorkSelection {
       top: 0;
       right: 0;
       padding: 0.375rem 0.75rem;
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.08em;
       border-bottom-left-radius: 8px;
     }
 
     .work-type-badge[data-type="book"] {
-      background: #e3f2fd;
-      color: #1565c0;
+      background: #e6f0fa;
+      color: #1f5a94;
     }
 
     .work-type-badge[data-type="catechism"] {
-      background: #f3e5f5;
-      color: #6a1b9a;
+      background: #efe9f7;
+      color: #5f3f8c;
     }
 
     .work-type-badge[data-type="confession"] {
-      background: #fff3e0;
-      color: #e65100;
+      background: #f6ede3;
+      color: #8c4f17;
     }
 
     .work-type-badge[data-type="creed"] {
-      background: #e8f5e9;
-      color: #2e7d32;
+      background: #e6f2ea;
+      color: #2d6b43;
     }
 
     .work-title {
       margin: 0 0 0.5rem 0;
-      font-size: 1.125rem;
+      font-size: 1.08rem;
       font-weight: 700;
-      color: #2c3e50;
+      color: var(--text-strong);
       line-height: 1.4;
       padding-right: 4rem;
     }
@@ -303,21 +306,21 @@ export interface WorkSelection {
     .work-author {
       margin: 0 0 0.375rem 0;
       font-size: 0.95rem;
-      color: #495057;
+      color: var(--text-body);
       font-style: italic;
     }
 
     .work-tradition {
       margin: 0;
       font-size: 0.875rem;
-      color: #6c757d;
+      color: var(--text-muted);
       font-weight: 500;
     }
 
     .empty-state {
       padding: 4rem 2rem;
       text-align: center;
-      color: #6c757d;
+      color: var(--text-muted);
     }
 
     .empty-state p {
@@ -327,15 +330,15 @@ export interface WorkSelection {
 
     .library-footer {
       padding: 1rem 2rem;
-      border-top: 1px solid #e0e0e0;
-      background: #f8f9fa;
+      border-top: 1px solid var(--border-subtle);
+      background: #f7f9fc;
       text-align: center;
     }
 
     .results-count {
       margin: 0;
       font-size: 0.875rem;
-      color: #6c757d;
+      color: var(--text-muted);
       font-weight: 500;
     }
 

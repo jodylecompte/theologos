@@ -55,7 +55,7 @@ export interface UnitSelection {
                       <span class="unit-number">{{ getUnitLabel() }} {{ unit.number }}</span>
                       <span class="unit-preview">{{ unit.displayText }}</span>
                       @if (unit.hasReferences) {
-                        <span class="ref-indicator">📖</span>
+                        <span class="ref-indicator" aria-label="Has references">Ref</span>
                       }
                     </button>
                   }
@@ -73,11 +73,11 @@ export interface UnitSelection {
     }
 
     .selector-trigger {
-      padding: 0.75rem 1.25rem;
-      background: white;
-      border: 2px solid #333;
-      border-radius: 6px;
-      font-size: 1.1rem;
+      padding: 0.62rem 0.95rem;
+      background: #f8fafd;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      font-size: 0.98rem;
       font-weight: 600;
       cursor: pointer;
       display: flex;
@@ -87,17 +87,18 @@ export interface UnitSelection {
     }
 
     .selector-trigger:hover {
-      background: #f5f5f5;
-      border-color: #555;
+      background: #ffffff;
+      border-color: var(--brand-500);
+      box-shadow: 0 8px 16px rgba(17, 58, 102, 0.1);
     }
 
     .current-reference {
-      color: #333;
+      color: var(--text-strong);
     }
 
     .dropdown-icon {
-      color: #666;
-      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-size: 0.72rem;
     }
 
     .selector-modal {
@@ -106,7 +107,7 @@ export interface UnitSelection {
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(8, 18, 33, 0.6);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -116,28 +117,30 @@ export interface UnitSelection {
 
     .selector-content {
       background: white;
-      border-radius: 12px;
+      border-radius: var(--radius-lg);
       max-width: 700px;
       width: 100%;
       max-height: 80vh;
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      box-shadow: var(--shadow-2);
     }
 
     .selector-header {
       padding: 1.5rem;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid var(--border-subtle);
       display: flex;
       justify-content: space-between;
       align-items: center;
+      background: linear-gradient(180deg, #f9fbff 0%, #f3f6fb 100%);
     }
 
     .selector-header h2 {
       margin: 0;
-      font-size: 1.5rem;
-      color: #333;
+      font-family: var(--font-serif);
+      font-size: 1.32rem;
+      color: var(--text-strong);
     }
 
     .close-button {
@@ -151,7 +154,7 @@ export interface UnitSelection {
     }
 
     .close-button:hover {
-      color: #333;
+      color: var(--text-strong);
     }
 
     .unit-selection {
@@ -163,7 +166,7 @@ export interface UnitSelection {
     .loading {
       padding: 2rem;
       text-align: center;
-      color: #666;
+      color: var(--text-muted);
     }
 
     .units-list {
@@ -177,22 +180,22 @@ export interface UnitSelection {
       align-items: center;
       gap: 1rem;
       padding: 0.875rem 1rem;
-      background: #f8f8f8;
-      border: 1px solid #e0e0e0;
-      border-radius: 6px;
+      background: var(--surface-2);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
       cursor: pointer;
       transition: all 0.2s;
       text-align: left;
     }
 
     .unit-button:hover {
-      background: #f0f0f0;
-      border-color: #333;
+      background: #ffffff;
+      border-color: var(--brand-500);
     }
 
     .unit-button.active {
-      background: #333;
-      border-color: #333;
+      background: var(--brand-600);
+      border-color: var(--brand-700);
       color: white;
     }
 
@@ -214,7 +217,21 @@ export interface UnitSelection {
     }
 
     .ref-indicator {
-      font-size: 1rem;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      border: 1px solid var(--border-strong);
+      border-radius: 999px;
+      padding: 0.1rem 0.45rem;
+      background: #ffffff;
+      font-weight: 600;
+    }
+
+    .unit-button.active .ref-indicator {
+      color: #dce8f5;
+      border-color: rgba(255, 255, 255, 0.35);
+      background: rgba(255, 255, 255, 0.12);
     }
   `]
 })
@@ -241,9 +258,12 @@ export class WorkUnitSelectorComponent implements OnInit, OnChanges {
     this.loadUnits();
   }
 
-  ngOnChanges() {
+  ngOnChanges(changes: any) {
     // Reload units if workSlug changes
-    this.loadUnits();
+    if (changes['workSlug']) {
+      this.currentUnit.set(1);
+      this.loadUnits();
+    }
   }
 
   private async loadUnits() {

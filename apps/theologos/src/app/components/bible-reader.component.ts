@@ -88,13 +88,13 @@ export interface NavigationChange {
   `,
   styles: [`
     .bible-reader {
-      padding: 2rem;
-      font-family: Georgia, serif;
+      padding: 1.75rem;
+      font-family: var(--font-serif);
     }
 
     .reader-header {
-      border-bottom: 2px solid #333;
-      margin-bottom: 2rem;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 1.45rem;
       padding-bottom: 1rem;
     }
 
@@ -114,14 +114,15 @@ export interface NavigationChange {
 
     .reader-header h1 {
       margin: 0;
-      font-size: 1.5rem;
-      color: #333;
+      font-size: 1.45rem;
+      color: var(--text-strong);
       font-weight: 600;
+      letter-spacing: 0.01em;
     }
 
     .translation-info {
-      color: #666;
-      font-size: 0.9rem;
+      color: var(--text-muted);
+      font-size: 0.87rem;
       font-style: italic;
     }
 
@@ -132,27 +133,27 @@ export interface NavigationChange {
     }
 
     .error {
-      color: #c00;
+      color: #ab2f2f;
     }
 
     .chapter-content {
-      line-height: 1.8;
-      font-size: 1.1rem;
-      color: #222;
+      line-height: 1.9;
+      font-size: 1.08rem;
+      color: #23364b;
     }
 
     .verse {
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.55rem;
     }
 
     .verse-number {
       display: inline-block;
       width: 2.5rem;
       font-weight: bold;
-      color: #666;
+      color: #6c7890;
       font-size: 0.85rem;
       vertical-align: super;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-family: var(--font-sans);
     }
 
     .verse-text {
@@ -160,39 +161,55 @@ export interface NavigationChange {
     }
 
     .verse.highlighted {
-      background-color: #ffeb3b;
+      background-color: #f8ecd6;
       transition: background-color 2s ease;
       padding: 0.25rem;
       margin: -0.25rem;
-      border-radius: 3px;
+      border-radius: var(--radius-sm);
     }
 
     .chapter-nav {
       display: flex;
       justify-content: space-between;
-      margin-top: 3rem;
-      padding-top: 2rem;
-      border-top: 1px solid #ddd;
+      margin-top: 2.4rem;
+      padding-top: 1.45rem;
+      border-top: 1px solid var(--border-subtle);
     }
 
     .nav-button {
-      padding: 0.75rem 1.5rem;
-      font-size: 1rem;
-      background: #333;
-      color: white;
-      border: none;
-      border-radius: 4px;
+      padding: 0.66rem 1.1rem;
+      font-size: 0.95rem;
+      background: var(--brand-600);
+      color: #f5f9ff;
+      border: 1px solid var(--brand-700);
+      border-radius: var(--radius-sm);
       cursor: pointer;
-      transition: background 0.2s;
+      transition: all 0.2s ease;
     }
 
     .nav-button:hover:not(:disabled) {
-      background: #555;
+      background: var(--brand-700);
+      transform: translateY(-1px);
     }
 
     .nav-button:disabled {
-      background: #ccc;
+      background: #bac6d6;
+      border-color: #bac6d6;
       cursor: not-allowed;
+    }
+
+    @media (max-width: 900px) {
+      .bible-reader {
+        padding: 1.25rem;
+      }
+
+      .header-row {
+        gap: 1rem;
+      }
+
+      .reader-header h1 {
+        font-size: 1.25rem;
+      }
     }
   `]
 })

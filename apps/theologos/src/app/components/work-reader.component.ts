@@ -1,4 +1,4 @@
-import { Component, inject, signal, viewChild, Input, Output, EventEmitter, OnInit, OnChanges } from '@angular/core';
+import { Component, inject, signal, viewChild, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { WorkUnitSelectorComponent, type UnitSelection } from './work-unit-selector.component';
@@ -169,13 +169,13 @@ export interface NavigationChange {
   `,
   styles: [`
     .work-reader {
-      padding: 2rem;
-      font-family: Georgia, serif;
+      padding: 1.75rem;
+      font-family: var(--font-serif);
     }
 
     .reader-header {
-      border-bottom: 2px solid #333;
-      margin-bottom: 2rem;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 1.45rem;
       padding-bottom: 1rem;
     }
 
@@ -185,15 +185,15 @@ export interface NavigationChange {
 
     .reader-header h1 {
       margin: 0;
-      font-size: 1.5rem;
-      color: #333;
+      font-size: 1.45rem;
+      color: var(--text-strong);
       font-weight: 600;
     }
 
     .work-info {
       margin: 0.5rem 0 0 0;
-      color: #666;
-      font-size: 0.9rem;
+      color: var(--text-muted);
+      font-size: 0.87rem;
     }
 
     .author {
@@ -207,24 +207,24 @@ export interface NavigationChange {
     }
 
     .error {
-      color: #c00;
+      color: #ab2f2f;
     }
 
     .unit-content {
-      line-height: 1.8;
-      color: #222;
+      line-height: 1.85;
+      color: #23364b;
     }
 
     .unit-number {
       margin: 0 0 1rem 0;
-      font-size: 1.3rem;
-      color: #333;
+      font-size: 1.28rem;
+      color: var(--text-strong);
       font-weight: 600;
     }
 
     .chapter-context {
-      font-size: 0.9rem;
-      color: #666;
+      font-size: 0.88rem;
+      color: var(--text-muted);
       font-weight: normal;
       font-style: italic;
     }
@@ -242,37 +242,37 @@ export interface NavigationChange {
 
     .question-text {
       font-style: italic;
-      color: #444;
+      color: #304963;
       font-size: 1.2rem;
     }
 
     .answer {
       font-size: 1.1rem;
       margin: 0 0 2rem 0;
-      padding: 1.5rem;
-      background: #f8f8f8;
-      border-left: 4px solid #333;
-      border-radius: 4px;
+      padding: 1.2rem 1.35rem;
+      background: #f4f7fc;
+      border-left: 4px solid var(--brand-600);
+      border-radius: var(--radius-sm);
     }
 
     .answer strong {
-      color: #333;
+      color: var(--brand-700);
       margin-right: 0.5rem;
     }
 
     .proof-texts {
       margin-top: 2rem;
       padding-top: 2rem;
-      border-top: 1px solid #ddd;
+      border-top: 1px solid var(--border-subtle);
     }
 
     .proof-texts h3 {
       margin: 0 0 1rem 0;
-      font-size: 1.1rem;
-      color: #666;
+      font-size: 0.95rem;
+      color: var(--text-muted);
       font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.08em;
     }
 
     .proof-list {
@@ -284,7 +284,7 @@ export interface NavigationChange {
     .proof-item {
       margin-bottom: 1.5rem;
       padding-bottom: 1.5rem;
-      border-bottom: 1px solid #f0f0f0;
+      border-bottom: 1px solid var(--surface-3);
     }
 
     .proof-item:last-child {
@@ -295,27 +295,28 @@ export interface NavigationChange {
 
     .proof-link {
       display: inline-block;
-      background: #333;
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
-      font-size: 0.9rem;
+      background: var(--accent-100);
+      color: #5e3c18;
+      border: 1px solid #e8d3bc;
+      padding: 0.44rem 0.85rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
       font-weight: 600;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: all 0.2s ease;
       margin-bottom: 0.5rem;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-family: var(--font-sans);
     }
 
     .proof-link:hover {
-      background: #555;
+      background: #ead8c4;
+      border-color: #ddc09d;
     }
 
     .verse-preview {
       display: block;
-      font-size: 0.95rem;
-      color: #666;
+      font-size: 0.93rem;
+      color: var(--text-muted);
       line-height: 1.6;
       font-style: italic;
     }
@@ -323,29 +324,41 @@ export interface NavigationChange {
     .unit-nav {
       display: flex;
       justify-content: space-between;
-      margin-top: 3rem;
-      padding-top: 2rem;
-      border-top: 1px solid #ddd;
+      margin-top: 2.4rem;
+      padding-top: 1.45rem;
+      border-top: 1px solid var(--border-subtle);
     }
 
     .nav-button {
-      padding: 0.75rem 1.5rem;
-      font-size: 1rem;
-      background: #333;
-      color: white;
-      border: none;
-      border-radius: 4px;
+      padding: 0.66rem 1.1rem;
+      font-size: 0.95rem;
+      background: var(--brand-600);
+      color: #f5f9ff;
+      border: 1px solid var(--brand-700);
+      border-radius: var(--radius-sm);
       cursor: pointer;
-      transition: background 0.2s;
+      transition: all 0.2s ease;
     }
 
     .nav-button:hover:not(:disabled) {
-      background: #555;
+      background: var(--brand-700);
+      transform: translateY(-1px);
     }
 
     .nav-button:disabled {
-      background: #ccc;
+      background: #bac6d6;
+      border-color: #bac6d6;
       cursor: not-allowed;
+    }
+
+    @media (max-width: 900px) {
+      .work-reader {
+        padding: 1.25rem;
+      }
+
+      .reader-header h1 {
+        font-size: 1.2rem;
+      }
     }
   `]
 })
@@ -389,7 +402,18 @@ export class WorkReaderComponent implements OnInit, OnChanges {
     this.loadWorkMetadata();
   }
 
-  ngOnChanges() {
+  ngOnChanges(changes: SimpleChanges) {
+    // If workSlug changed, reload everything
+    if (changes['workSlug'] && !changes['workSlug'].firstChange) {
+      this.workMetadata.set(null);
+      this.unit.set(null);
+      this.page.set(null);
+      this.currentUnitNumber.set(this.initialUnit || 1);
+      this.currentPageNumber.set(this.initialPage || 1);
+      this.loadWorkMetadata();
+      return;
+    }
+
     if (this.initialUnit !== undefined && this.initialUnit !== this.currentUnitNumber()) {
       this.currentUnitNumber.set(this.initialUnit);
       this.loadContent();
@@ -402,7 +426,7 @@ export class WorkReaderComponent implements OnInit, OnChanges {
 
   isBook(): boolean {
     const metadata = this.workMetadata();
-    return metadata ? metadata.totalPages > 0 : false;
+    return metadata ? metadata.type === 'book' : false;
   }
 
   private async loadWorkMetadata() {

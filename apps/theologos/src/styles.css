@@ -1,20 +1,60 @@
-/* Global Styles */
-* {
-  margin: 0;
-  padding: 0;
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&display=swap');
+
+:root {
+  --font-sans: 'Source Sans 3', 'Segoe UI', sans-serif;
+  --font-serif: 'Fraunces', Georgia, serif;
+
+  --surface-0: #f2f4f8;
+  --surface-1: #ffffff;
+  --surface-2: #f7f8fb;
+  --surface-3: #e8ebf2;
+  --surface-tint: rgba(11, 35, 64, 0.08);
+
+  --text-strong: #10233a;
+  --text-body: #2f4158;
+  --text-muted: #627489;
+  --text-on-dark: #ebf2fa;
+
+  --brand-700: #113a66;
+  --brand-600: #1c4f83;
+  --brand-500: #2d6398;
+  --accent-500: #8b5c2a;
+  --accent-100: #f3eadf;
+
+  --border-subtle: #d7deea;
+  --border-strong: #c0ccdf;
+
+  --shadow-1: 0 8px 24px rgba(13, 28, 49, 0.08);
+  --shadow-2: 0 20px 50px rgba(13, 28, 49, 0.16);
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+}
+
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
+html,
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  line-height: 1.6;
-  color: #333;
-  background: #f5f5f5;
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  line-height: 1.55;
+  color: var(--text-body);
+  background:
+    radial-gradient(circle at 20% 10%, rgba(28, 79, 131, 0.14) 0, rgba(28, 79, 131, 0) 35%),
+    radial-gradient(circle at 85% 90%, rgba(139, 92, 42, 0.13) 0, rgba(139, 92, 42, 0) 30%),
+    linear-gradient(180deg, #eef2f8 0%, #f7f9fc 100%);
 }
 
 a {
-  color: #3498db;
+  color: var(--brand-600);
   text-decoration: none;
 }
 
@@ -22,10 +62,7 @@ a:hover {
   text-decoration: underline;
 }
 
-button {
-  font-family: inherit;
-}
-
+button,
 input,
 select,
 textarea {

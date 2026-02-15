@@ -111,11 +111,11 @@ export interface BookSelection {
     }
 
     .selector-trigger {
-      padding: 0.75rem 1.25rem;
-      background: white;
-      border: 2px solid #333;
-      border-radius: 6px;
-      font-size: 1.1rem;
+      padding: 0.62rem 0.95rem;
+      background: #f8fafd;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      font-size: 0.98rem;
       font-weight: 600;
       cursor: pointer;
       display: flex;
@@ -125,17 +125,18 @@ export interface BookSelection {
     }
 
     .selector-trigger:hover {
-      background: #f5f5f5;
-      border-color: #555;
+      background: #ffffff;
+      border-color: var(--brand-500);
+      box-shadow: 0 8px 16px rgba(17, 58, 102, 0.1);
     }
 
     .current-reference {
-      color: #333;
+      color: var(--text-strong);
     }
 
     .dropdown-icon {
-      color: #666;
-      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-size: 0.72rem;
     }
 
     .selector-modal {
@@ -144,7 +145,7 @@ export interface BookSelection {
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(8, 18, 33, 0.6);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -154,28 +155,30 @@ export interface BookSelection {
 
     .selector-content {
       background: white;
-      border-radius: 12px;
+      border-radius: var(--radius-lg);
       max-width: 600px;
       width: 100%;
       max-height: 80vh;
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      box-shadow: var(--shadow-2);
     }
 
     .selector-header {
       padding: 1.5rem;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid var(--border-subtle);
       display: flex;
       justify-content: space-between;
       align-items: center;
+      background: linear-gradient(180deg, #f9fbff 0%, #f3f6fb 100%);
     }
 
     .selector-header h2 {
       margin: 0;
-      font-size: 1.5rem;
-      color: #333;
+      font-family: var(--font-serif);
+      font-size: 1.32rem;
+      color: var(--text-strong);
     }
 
     .close-button {
@@ -189,7 +192,7 @@ export interface BookSelection {
     }
 
     .close-button:hover {
-      color: #333;
+      color: var(--text-strong);
     }
 
     .book-selection, .chapter-selection {
@@ -201,7 +204,7 @@ export interface BookSelection {
     .loading {
       padding: 2rem;
       text-align: center;
-      color: #666;
+      color: var(--text-muted);
     }
 
     .testament-section {
@@ -210,11 +213,11 @@ export interface BookSelection {
 
     .testament-title {
       margin: 0 0 1rem 0;
-      font-size: 1.1rem;
-      color: #666;
+      font-size: 0.85rem;
+      color: var(--text-muted);
       font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.09em;
     }
 
     .books-list {
@@ -227,22 +230,22 @@ export interface BookSelection {
       justify-content: space-between;
       align-items: center;
       padding: 0.875rem 1rem;
-      background: #f8f8f8;
-      border: 1px solid #e0e0e0;
-      border-radius: 6px;
+      background: var(--surface-2);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
       cursor: pointer;
       transition: all 0.2s;
       text-align: left;
     }
 
     .book-button:hover {
-      background: #f0f0f0;
-      border-color: #333;
+      background: #ffffff;
+      border-color: var(--brand-500);
     }
 
     .book-button.active {
-      background: #333;
-      border-color: #333;
+      background: var(--brand-600);
+      border-color: var(--brand-700);
       color: white;
     }
 
@@ -253,7 +256,7 @@ export interface BookSelection {
 
     .chapter-count {
       font-size: 0.875rem;
-      color: #999;
+      color: var(--text-muted);
       font-weight: 400;
     }
 
@@ -263,22 +266,23 @@ export interface BookSelection {
 
     .back-button {
       padding: 0.5rem 1rem;
-      background: #f8f8f8;
-      border: 1px solid #e0e0e0;
-      border-radius: 6px;
+      background: var(--surface-2);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
       cursor: pointer;
       font-size: 0.9rem;
       margin-bottom: 1rem;
     }
 
     .back-button:hover {
-      background: #f0f0f0;
+      background: #ffffff;
     }
 
     .book-title {
       margin: 0 0 1.5rem 0;
-      font-size: 1.5rem;
-      color: #333;
+      font-family: var(--font-serif);
+      font-size: 1.35rem;
+      color: var(--text-strong);
     }
 
     .chapters-grid {
@@ -289,9 +293,9 @@ export interface BookSelection {
 
     .chapter-button {
       padding: 1rem;
-      background: #f8f8f8;
-      border: 1px solid #e0e0e0;
-      border-radius: 6px;
+      background: var(--surface-2);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
       cursor: pointer;
       font-size: 1rem;
       font-weight: 500;
@@ -299,13 +303,13 @@ export interface BookSelection {
     }
 
     .chapter-button:hover {
-      background: #f0f0f0;
-      border-color: #333;
+      background: #ffffff;
+      border-color: var(--brand-500);
     }
 
     .chapter-button.active {
-      background: #333;
-      border-color: #333;
+      background: var(--brand-600);
+      border-color: var(--brand-700);
       color: white;
     }
   `]

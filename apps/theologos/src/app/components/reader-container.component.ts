@@ -39,20 +39,20 @@ interface BibleReference {
     .reader-container {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 1.5rem;
+      gap: 1.15rem;
       height: 100%;
-      padding: 1.5rem;
-      padding-bottom: 1.5rem;
+      padding: 0;
       box-sizing: border-box;
     }
 
     .left-pane, .right-pane {
       overflow-y: auto;
       overflow-x: hidden;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      background: white;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, #fbfcfe 100%);
+      box-shadow: var(--shadow-1);
+      min-height: 0;
     }
 
     /* Mobile: stack vertically */
@@ -60,18 +60,14 @@ interface BibleReference {
       .reader-container {
         grid-template-columns: 1fr;
         grid-template-rows: 1fr 1fr;
-        gap: 1rem;
-        padding: 1rem;
-        padding-bottom: 1rem;
+        gap: 0.85rem;
       }
     }
 
     /* Tablet: slightly smaller gap */
     @media (max-width: 1280px) and (min-width: 1025px) {
       .reader-container {
-        gap: 1.25rem;
-        padding: 1.25rem;
-        padding-bottom: 1.25rem;
+        gap: 1rem;
       }
     }
   `]
