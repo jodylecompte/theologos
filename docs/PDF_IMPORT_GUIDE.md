@@ -66,6 +66,18 @@ Run the chapter detection tool:
 nx run importer:detect-chapters -- --file data/book.pdf
 ```
 
+If prose/paragraph rendering looks wrong, inspect one page before importing:
+
+```bash
+nx run importer:inspect-pdf -- --file data/book.pdf --page 42
+```
+
+This shows:
+- Raw `pdftotext` output
+- `pdftotext -layout` output
+- The exact normalized text that import uses
+- BBox line/word geometry preview for the page
+
 **What it does:**
 - Extracts all text from PDF
 - Attempts to detect chapter headings using pattern matching
@@ -165,6 +177,12 @@ Once metadata is ready:
 
 ```bash
 nx run importer:import-book -- --metadata data/book-metadata.json
+```
+
+If you changed PDF normalization logic and want it applied to an already imported book, re-import with `--force`:
+
+```bash
+nx run importer:import-book -- --metadata data/book-metadata.json --force
 ```
 
 **What it does:**

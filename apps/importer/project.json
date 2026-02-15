@@ -119,6 +119,14 @@
         "cwd": "{workspaceRoot}"
       }
     },
+    "inspect-pdf": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["^build"],
+      "options": {
+        "command": "node -r @swc-node/register apps/importer/src/tools/inspect-pdf.ts",
+        "cwd": "{workspaceRoot}"
+      }
+    },
     "create-metadata": {
       "executor": "nx:run-commands",
       "dependsOn": ["^build"],

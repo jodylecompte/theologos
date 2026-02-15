@@ -92,7 +92,11 @@ export interface NavigationChange {
                 <span class="chapter-context"> • {{ page()!.chapterTitle }}</span>
               }
             </h2>
-            <div class="primary-text page-content">{{ page()!.content }}</div>
+            <div class="page-content">
+              @for (paragraph of getPageParagraphs(); track $index) {
+                <p class="page-paragraph" [class.indented]="paragraph.isIndented">{{ paragraph.text }}</p>
+              }
+            </div>
 
             @if (page()!.proofTexts.length > 0) {
               <div class="proof-texts">
@@ -230,14 +234,30 @@ export interface NavigationChange {
     }
 
     .page-content {
-      white-space: pre-wrap;
       line-height: 1.8;
+      max-width: 100%;
+    }
+
+    .page-paragraph {
+      font-size: 1.1rem;
+      margin: 0 0 1rem 0;
+      line-height: 1.8;
+      white-space: pre-line;
+    }
+
+    .page-paragraph.indented {
+      text-indent: 2em;
+    }
+
+    .page-paragraph:last-child {
+      margin-bottom: 0;
     }
 
     .primary-text {
       font-size: 1.1rem;
       margin: 0 0 1.5rem 0;
-      white-space: pre-wrap;
+      white-space: normal;
+      max-width: 100%;
     }
 
     .question-text {
@@ -540,6 +560,62 @@ export class WorkReaderComponent implements OnInit, OnChanges {
     if (type === 'confession') return 'Article';
     if (type === 'creed') return 'Section';
     return 'Unit';
+  }
+
+  getPageParagraphs(): Array<{ text: string; isIndented: boolean }> {
+    const content = this.page()?.content || '';
+    if (!content) return [];
+
+    const lines = content.split('\n');
+    const paragraphs: Array<{ text: string; isIndented: boolean }> = [];
+    let currentPara: string[] = [];
+    let currentIsIndented = false;
+
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+
+      // Empty line = paragraph break
+      if (!trimmedLine) {
+        if (currentPara.length > 0) {
+          paragraphs.push({
+            text: currentPara.join('\n'),
+            isIndented: currentIsIndented
+          });
+          currentPara = [];
+        }
+        continue;
+      }
+
+      // Check if line starts with paragraph marker
+      const isIndented = trimmedLine.startsWith('¶');
+      const cleanLine = isIndented ? trimmedLine.substring(1) : trimmedLine;
+
+      // If we hit an indented line and have content, end current paragraph
+      if (isIndented && currentPara.length > 0) {
+        paragraphs.push({
+          text: currentPara.join('\n'),
+          isIndented: currentIsIndented
+        });
+        currentPara = [];
+      }
+
+      // Start new paragraph or continue current
+      if (currentPara.length === 0) {
+        currentIsIndented = isIndented;
+      }
+
+      currentPara.push(cleanLine);
+    }
+
+    // Add final paragraph
+    if (currentPara.length > 0) {
+      paragraphs.push({
+        text: currentPara.join('\n'),
+        isIndented: currentIsIndented
+      });
+    }
+
+    return paragraphs;
   }
 
   getCurrentPosition(): number {

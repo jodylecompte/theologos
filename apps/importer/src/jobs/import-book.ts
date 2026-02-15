@@ -11,6 +11,7 @@
 import { prisma, disconnect } from '../../../../libs/database/src/index';
 import { createLogger } from '../utils/logger';
 import { detectAndResolve } from '../utils/reference-parser';
+import { cleanPdfText } from '../utils/pdf-text-normalizer';
 import * as fs from 'fs';
 import * as path from 'path';
 import { execSync } from 'child_process';
@@ -46,10 +47,10 @@ interface ImportStats {
 function extractSinglePage(pdfPath: string, pageNumber: number): string {
   try {
     const text = execSync(
-      `pdftotext -f ${pageNumber} -l ${pageNumber} "${pdfPath}" -`,
+      `pdftotext -layout -enc UTF-8 -f ${pageNumber} -l ${pageNumber} "${pdfPath}" -`,
       { encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024 }
     );
-    return text.trim();
+    return cleanPdfText(text);
   } catch (error: any) {
     throw new Error(`Failed to extract page ${pageNumber}: ${error.message}`);
   }
