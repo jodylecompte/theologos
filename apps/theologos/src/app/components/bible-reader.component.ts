@@ -48,6 +48,16 @@ export interface NavigationChange {
             <h1>{{ bookName() }} {{ chapterNumber() }}</h1>
             <span class="translation-info">{{ translationName() }}</span>
           </div>
+          <div class="view-toggle">
+            <label class="toggle-label">
+              <input
+                type="checkbox"
+                [checked]="proseMode()"
+                (change)="proseMode.set(!proseMode())"
+                class="toggle-checkbox">
+              <span class="toggle-text">Prose</span>
+            </label>
+          </div>
         </div>
       </header>
 
@@ -60,14 +70,26 @@ export interface NavigationChange {
       }
 
       @if (!loading() && verses().length > 0) {
-        <div class="chapter-content">
-          @for (verse of verses(); track verse.number) {
-            <div class="verse" [id]="'verse-' + verse.number">
-              <span class="verse-number">{{ verse.number }}</span>
-              <span class="verse-text">{{ verse.text }}</span>
-            </div>
-          }
-        </div>
+        @if (proseMode()) {
+          <!-- Prose mode: flowing text with inline verse numbers -->
+          <div class="chapter-content prose-mode">
+            @for (verse of verses(); track verse.number) {
+              <span class="prose-verse" [id]="'verse-' + verse.number">
+                <sup class="prose-verse-number">{{ verse.number }}</sup>{{ verse.text }}
+              </span>
+            }
+          </div>
+        } @else {
+          <!-- Verse-by-verse mode: traditional format with verse numbers -->
+          <div class="chapter-content">
+            @for (verse of verses(); track verse.number) {
+              <div class="verse" [id]="'verse-' + verse.number">
+                <span class="verse-number">{{ verse.number }}</span>
+                <span class="verse-text">{{ verse.text }}</span>
+              </div>
+            }
+          </div>
+        }
 
         <nav class="chapter-nav">
           <button
@@ -110,6 +132,31 @@ export interface NavigationChange {
       align-items: baseline;
       gap: 1rem;
       flex: 1;
+    }
+
+    .view-toggle {
+      display: flex;
+      align-items: center;
+    }
+
+    .toggle-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .toggle-checkbox {
+      cursor: pointer;
+      width: 1rem;
+      height: 1rem;
+    }
+
+    .toggle-text {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      font-weight: 500;
     }
 
     .reader-header h1 {
@@ -166,6 +213,26 @@ export interface NavigationChange {
       padding: 0.25rem;
       margin: -0.25rem;
       border-radius: var(--radius-sm);
+    }
+
+    .prose-mode {
+      text-align: left;
+    }
+
+    .prose-verse {
+      display: inline;
+    }
+
+    .prose-verse:hover {
+      background-color: rgba(0, 0, 0, 0.03);
+      cursor: pointer;
+    }
+
+    .prose-verse-number {
+      font-weight: bold;
+      color: #6c7890;
+      font-size: 0.75em;
+      margin-right: 0.15em;
     }
 
     .chapter-nav {
@@ -238,6 +305,7 @@ export class BibleReaderComponent implements AfterViewInit {
   verses = signal<BibleVerse[]>([]);
   loading = signal(true);
   error = signal<string | null>(null);
+  proseMode = signal(false);
 
   constructor() {
     // Set initial values from inputs or defaults
