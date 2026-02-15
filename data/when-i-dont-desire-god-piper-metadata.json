@@ -1,0 +1,32 @@
+{
+  "title": "When I Don't Desire God",
+  "author": "John Piper",
+  "slug": "when-i-dont-desire-god",
+  "type": "book",
+  "tradition": "reformed",
+  "pdfFile": "data/when-i-dont-desire-god-1388566418.pdf",
+  "chapters": [
+    {
+      "number": 1,
+      "displayNumber": "Preface",
+      "title": "Preface to the Tenth-Anniversary Edition",
+      "startPage": 8,
+      "endPage": 9
+    },
+    {
+      "number": 2,
+      "displayNumber": "Preface",
+      "title": "Preface and a Prayer",
+      "startPage": 10,
+      "endPage": 13
+    },
+    {
+      "number": 3,
+      "displayNumber": "Chapter 1",
+      "title": "Chapter 1: Why I Wrote This Book",
+      "subtitle": "Sustaining the Sacrifice of Love",
+      "startPage": 14,
+      "endPage": 23
+    }
+  ]
+}

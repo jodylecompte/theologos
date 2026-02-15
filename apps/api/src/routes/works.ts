@@ -12,6 +12,8 @@ const WORK_SLUG_MAP: Record<string, string> = {
   'apostles-creed': 'Apostles\' Creed',
   'nicene-creed': 'Nicene Creed',
   'the-loveliness-of-christ': 'THE LOVELINESS OF CHRIST',
+  'when-i-don-t-desire-god': 'When I Don\'t Desire God',
+  'when-i-dont-desire-god': 'When I Don\'t Desire God', // Alternative slug format
   // Add more as you import them
 };
 
@@ -112,21 +114,40 @@ router.get('/:slug', async (req, res) => {
 
     // Map units to metadata
     const units = work.units.map((unit) => {
-      // Parse unit text from contentText
-      // Format varies: "Q. question\nA. answer" for catechisms, or just content for creeds
-      const lines = unit.contentText.split('\n');
-      const firstLine = lines[0] || unit.contentText;
+      let displayText: string;
 
-      // Try to extract label (Q., Article, etc.) and text
-      let displayText = firstLine;
-      if (firstLine.length > 150) {
-        displayText = firstLine.substring(0, 150) + '...';
+      // For books, use title (contains "Preface: Title" or "Chapter 1: Title\nSubtitle")
+      // For catechisms/creeds, parse from contentText
+      if (work.type === 'book' && unit.title) {
+        // Extract main title line (before any subtitle newline)
+        displayText = unit.title.split('\n')[0];
+      } else {
+        // Parse unit text from contentText
+        // Format varies: "Q. question\nA. answer" for catechisms, or just content for creeds
+        const lines = unit.contentText.split('\n');
+        const firstLine = lines[0] || unit.contentText;
+        displayText = firstLine;
+      }
+
+      if (displayText.length > 150) {
+        displayText = displayText.substring(0, 150) + '...';
+      }
+
+      // For books with pages, include the first page number
+      let firstPage: number | undefined;
+      if (work.type === 'book' && unit.children && unit.children.length > 0) {
+        // Find the first page child (sorted by positionIndex)
+        const firstChild = unit.children.reduce((min, child) =>
+          child.positionIndex < min.positionIndex ? child : min
+        );
+        firstPage = firstChild.positionIndex;
       }
 
       return {
         number: unit.positionIndex,
         displayText,
         hasReferences: unit.references.length > 0,
+        firstPage, // Include first page number for books
       };
     });
 
@@ -463,6 +484,7 @@ router.get('/:slug/pages/:pageNumber', async (req, res) => {
       workSlug: slug,
       workTitle: work.title,
       pageNumber,
+      chapterNumber: page.parentUnit?.positionIndex, // Chapter this page belongs to
       chapterTitle: page.parentUnit?.title,
       content: page.contentText,
       proofTexts,

@@ -160,8 +160,9 @@ function generateMetadata(pdfPath: string, title: string, author: string | undef
     chapters: chapters.length > 0
       ? chapters
           .filter(ch => ch.number !== undefined)
-          .map((ch) => ({
-            number: ch.number!,
+          .map((ch, index) => ({
+            number: index + 1,              // Sequential order (1, 2, 3, 4...)
+            displayNumber: ch.number ? ch.number.toString() : undefined, // Actual chapter number from book
             title: ch.title,
             startPage: 1, // TODO: Fill in by looking at PDF
             endPage: 1,   // TODO: Fill in by looking at PDF
@@ -169,10 +170,11 @@ function generateMetadata(pdfPath: string, title: string, author: string | undef
       : [
           // Template: Fill in your chapters here
           {
-            number: 1,
-            title: "Chapter 1 Title", // TODO: Edit
-            startPage: 1,              // TODO: Fill in
-            endPage: 10,               // TODO: Fill in
+            number: 1,              // Sequential order
+            displayNumber: "1",     // Optional: Use "Preface", "Introduction", "1", etc.
+            title: "Chapter Title", // TODO: Edit
+            startPage: 1,           // TODO: Fill in
+            endPage: 10,            // TODO: Fill in
           },
         ],
   };

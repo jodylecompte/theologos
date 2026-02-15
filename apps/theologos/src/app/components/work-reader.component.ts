@@ -1,4 +1,4 @@
-import { Component, inject, signal, viewChild, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, inject, signal, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { WorkUnitSelectorComponent, type UnitSelection } from './work-unit-selector.component';
@@ -26,6 +26,7 @@ interface PageResponse {
   workSlug: string;
   workTitle: string;
   pageNumber: number;
+  chapterNumber?: number; // Which chapter this page belongs to
   chapterTitle?: string;
   content: string;
   proofTexts: ProofText[];
@@ -61,6 +62,7 @@ export interface NavigationChange {
         <div class="header-top">
           <app-work-unit-selector
             [workSlug]="workSlug"
+            [currentUnitNumber]="selectorUnitNumber()"
             (selectionChange)="onSelectionChange($event)" />
         </div>
         <h1>{{ workMetadata()?.title || 'Loading...' }}</h1>
@@ -86,12 +88,6 @@ export interface NavigationChange {
         <div class="unit-content">
           @if (page()) {
             <!-- Book page format -->
-            <h2 class="unit-number">
-              Page {{ page()!.pageNumber }}
-              @if (page()!.chapterTitle) {
-                <span class="chapter-context"> • {{ page()!.chapterTitle }}</span>
-              }
-            </h2>
             <div class="page-content">
               @for (paragraph of getPageParagraphs(); track $index) {
                 <p class="page-paragraph" [class.indented]="paragraph.isIndented">{{ paragraph.text }}</p>
@@ -224,13 +220,6 @@ export interface NavigationChange {
       font-size: 1.28rem;
       color: var(--text-strong);
       font-weight: 600;
-    }
-
-    .chapter-context {
-      font-size: 0.88rem;
-      color: var(--text-muted);
-      font-weight: normal;
-      font-style: italic;
     }
 
     .page-content {
@@ -384,7 +373,6 @@ export interface NavigationChange {
 })
 export class WorkReaderComponent implements OnInit, OnChanges {
   private http = inject(HttpClient);
-  private selector = viewChild(WorkUnitSelectorComponent);
 
   // API configuration
   private readonly apiUrl = 'http://localhost:3333/api/works';
@@ -401,6 +389,7 @@ export class WorkReaderComponent implements OnInit, OnChanges {
   // Component state
   currentUnitNumber = signal(1);
   currentPageNumber = signal(1);
+  selectorUnitNumber = signal(1);
   unit = signal<WorkUnitResponse | null>(null);
   page = signal<PageResponse | null>(null);
   workMetadata = signal<WorkMetadata | null>(null);
@@ -430,12 +419,14 @@ export class WorkReaderComponent implements OnInit, OnChanges {
       this.page.set(null);
       this.currentUnitNumber.set(this.initialUnit || 1);
       this.currentPageNumber.set(this.initialPage || 1);
+      this.selectorUnitNumber.set(this.initialUnit || 1);
       this.loadWorkMetadata();
       return;
     }
 
     if (this.initialUnit !== undefined && this.initialUnit !== this.currentUnitNumber()) {
       this.currentUnitNumber.set(this.initialUnit);
+      this.selectorUnitNumber.set(this.initialUnit);
       this.loadContent();
     }
     if (this.initialPage !== undefined && this.initialPage !== this.currentPageNumber()) {
@@ -480,12 +471,15 @@ export class WorkReaderComponent implements OnInit, OnChanges {
 
   onSelectionChange(selection: UnitSelection) {
     if (this.isBook()) {
-      // For books, selection might be chapter-based, default to first page
-      this.currentPageNumber.set(selection.unitNumber);
+      // For books, navigate to the chapter's first page
+      const pageNumber = selection.firstPage || selection.unitNumber;
+      this.currentPageNumber.set(pageNumber);
+      this.selectorUnitNumber.set(selection.unitNumber);
       this.loadPage();
-      this.navigationChange.emit({ pageNumber: selection.unitNumber });
+      this.navigationChange.emit({ pageNumber });
     } else {
       this.currentUnitNumber.set(selection.unitNumber);
+      this.selectorUnitNumber.set(selection.unitNumber);
       this.loadUnit();
       this.navigationChange.emit({ unitNumber: selection.unitNumber });
     }
@@ -513,10 +507,9 @@ export class WorkReaderComponent implements OnInit, OnChanges {
         this.page.set(response);
         this.unit.set(null); // Clear unit data
 
-        // Update the selector's current position
-        const selectorComponent = this.selector();
-        if (selectorComponent) {
-          selectorComponent.updateUnit(this.currentPageNumber());
+        // Keep selector label on the active chapter while paging through books
+        if (response.chapterNumber) {
+          this.selectorUnitNumber.set(response.chapterNumber);
         }
       }
     } catch (err) {
@@ -538,12 +531,7 @@ export class WorkReaderComponent implements OnInit, OnChanges {
       if (response) {
         this.unit.set(response);
         this.page.set(null); // Clear page data
-
-        // Update the selector's current unit
-        const selectorComponent = this.selector();
-        if (selectorComponent) {
-          selectorComponent.updateUnit(this.currentUnitNumber());
-        }
+        this.selectorUnitNumber.set(this.currentUnitNumber());
       }
     } catch (err) {
       this.error.set('Failed to load content. Please try again.');

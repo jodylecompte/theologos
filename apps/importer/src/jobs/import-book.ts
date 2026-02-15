@@ -26,8 +26,10 @@ interface BookMetadata {
   tradition?: string;
   pdfFile: string;
   chapters: Array<{
-    number: number;
+    number: number;           // Sequential order for navigation (1, 2, 3, 4...)
+    displayNumber?: string;   // Actual chapter number as shown in book (can be "Preface", "Introduction", "Chapter 1", etc.)
     title: string;
+    subtitle?: string;        // Optional subtitle
     startPage: number;
     endPage: number;
   }>;
@@ -158,21 +160,31 @@ async function importBook(metadataPath: string, force: boolean): Promise<void> {
 
   // Process each chapter
   for (const chapter of metadata.chapters) {
-    logger.info(`Processing Chapter ${chapter.number}: ${chapter.title}`);
+    const displayNum = chapter.displayNumber || chapter.number.toString();
+    logger.info(`Processing ${displayNum}: ${chapter.title}`);
     logger.info(`  Pages ${chapter.startPage}-${chapter.endPage}`);
 
     // Create chapter WorkUnit (for structure/navigation)
+    // Use chapter.number for sequential positionIndex (1, 2, 3...)
+    // Title should be complete (e.g., "Preface to the Tenth-Anniversary Edition")
+    let chapterTitle = chapter.title;
+
+    // Append subtitle if provided
+    if (chapter.subtitle) {
+      chapterTitle += `\n${chapter.subtitle}`;
+    }
+
     const chapterUnit = await prisma.workUnit.create({
       data: {
         workId: work.id,
         type: 'chapter',
-        positionIndex: chapter.number,
-        title: chapter.title,
+        positionIndex: chapter.number,  // Sequential: 1, 2, 3, 4, 5, 6, 7...
+        title: chapterTitle,
         contentText: '', // No content at chapter level, it's in pages
       },
     });
 
-    logger.success(`  ✓ Created chapter: ${chapter.title}`);
+    logger.success(`  ✓ Created chapter: ${chapterTitle.split('\n')[0]}`);
 
     // Process each page in this chapter
     for (let pdfPageNum = chapter.startPage; pdfPageNum <= chapter.endPage; pdfPageNum++) {
