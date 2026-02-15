@@ -22,12 +22,22 @@ interface WorkUnitResponse {
   proofTexts: ProofText[];
 }
 
+interface PageResponse {
+  workSlug: string;
+  workTitle: string;
+  pageNumber: number;
+  chapterTitle?: string;
+  content: string;
+  proofTexts: ProofText[];
+}
+
 interface WorkMetadata {
   slug: string;
   title: string;
   author: string | null;
   type: string;
   totalUnits: number;
+  totalPages: number;
 }
 
 export interface ReferenceClick {
@@ -37,7 +47,8 @@ export interface ReferenceClick {
 }
 
 export interface NavigationChange {
-  unitNumber: number;
+  unitNumber?: number;
+  pageNumber?: number;
 }
 
 @Component({
@@ -55,7 +66,7 @@ export interface NavigationChange {
         <h1>{{ workMetadata()?.title || 'Loading...' }}</h1>
         @if (workMetadata()) {
           <p class="work-info">
-            {{ getUnitLabel() }} {{ currentUnitNumber() }} of {{ workMetadata()!.totalUnits }}
+            {{ getUnitLabel() }} {{ getCurrentPosition() }} of {{ getTotalCount() }}
             @if (workMetadata()!.author) {
               <span class="author"> • {{ workMetadata()!.author }}</span>
             }
@@ -71,45 +82,78 @@ export interface NavigationChange {
         <div class="error">{{ error() }}</div>
       }
 
-      @if (!loading() && unit()) {
+      @if (!loading() && (unit() || page())) {
         <div class="unit-content">
-          <h2 class="unit-number">{{ getUnitLabel() }} {{ unit()!.number }}</h2>
+          @if (page()) {
+            <!-- Book page format -->
+            <h2 class="unit-number">
+              Page {{ page()!.pageNumber }}
+              @if (page()!.chapterTitle) {
+                <span class="chapter-context"> • {{ page()!.chapterTitle }}</span>
+              }
+            </h2>
+            <div class="primary-text page-content">{{ page()!.content }}</div>
 
-          @if (unit()!.secondaryText) {
-            <!-- Catechism format: Question and Answer -->
-            <p class="primary-text question-text">{{ unit()!.primaryText }}</p>
-            <div class="answer">
-              <strong>A.</strong> {{ unit()!.secondaryText }}
-            </div>
-          } @else {
-            <!-- Creed/Confession format: Just content -->
-            <div class="primary-text">{{ unit()!.primaryText }}</div>
+            @if (page()!.proofTexts.length > 0) {
+              <div class="proof-texts">
+                <h3>Scripture References</h3>
+                <ul class="proof-list">
+                  @for (proof of page()!.proofTexts; track proof.displayText) {
+                    <li class="proof-item">
+                      <button
+                        class="proof-link"
+                        (click)="onProofTextClick(proof)"
+                        title="Navigate to {{ proof.displayText }}">
+                        {{ proof.displayText }}
+                      </button>
+                      <span class="verse-preview">{{ proof.references[0].text }}</span>
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
           }
 
-          @if (unit()!.proofTexts.length > 0) {
-            <div class="proof-texts">
-              <h3>Scripture References</h3>
-              <ul class="proof-list">
-                @for (proof of unit()!.proofTexts; track proof.displayText) {
-                  <li class="proof-item">
-                    <button
-                      class="proof-link"
-                      (click)="onProofTextClick(proof)"
-                      title="Navigate to {{ proof.displayText }}">
-                      {{ proof.displayText }}
-                    </button>
-                    <span class="verse-preview">{{ proof.references[0].text }}</span>
-                  </li>
-                }
-              </ul>
-            </div>
+          @if (unit()) {
+            <!-- Catechism/Creed format -->
+            <h2 class="unit-number">{{ getUnitLabel() }} {{ unit()!.number }}</h2>
+
+            @if (unit()!.secondaryText) {
+              <!-- Catechism format: Question and Answer -->
+              <p class="primary-text question-text">{{ unit()!.primaryText }}</p>
+              <div class="answer">
+                <strong>A.</strong> {{ unit()!.secondaryText }}
+              </div>
+            } @else {
+              <!-- Creed/Confession format: Just content -->
+              <div class="primary-text">{{ unit()!.primaryText }}</div>
+            }
+
+            @if (unit()!.proofTexts.length > 0) {
+              <div class="proof-texts">
+                <h3>Scripture References</h3>
+                <ul class="proof-list">
+                  @for (proof of unit()!.proofTexts; track proof.displayText) {
+                    <li class="proof-item">
+                      <button
+                        class="proof-link"
+                        (click)="onProofTextClick(proof)"
+                        title="Navigate to {{ proof.displayText }}">
+                        {{ proof.displayText }}
+                      </button>
+                      <span class="verse-preview">{{ proof.references[0].text }}</span>
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
           }
         </div>
 
         <nav class="unit-nav">
           <button
             (click)="previousUnit()"
-            [disabled]="currentUnitNumber() === 1"
+            [disabled]="!canGoPrevious()"
             class="nav-button">
             ← Previous
           </button>
@@ -176,6 +220,18 @@ export interface NavigationChange {
       font-size: 1.3rem;
       color: #333;
       font-weight: 600;
+    }
+
+    .chapter-context {
+      font-size: 0.9rem;
+      color: #666;
+      font-weight: normal;
+      font-style: italic;
+    }
+
+    .page-content {
+      white-space: pre-wrap;
+      line-height: 1.8;
     }
 
     .primary-text {
@@ -303,6 +359,7 @@ export class WorkReaderComponent implements OnInit, OnChanges {
   // Inputs
   @Input() workSlug: string = 'wsc'; // Default to Westminster Shorter Catechism
   @Input() initialUnit?: number;
+  @Input() initialPage?: number;
 
   // Outputs
   @Output() referenceClick = new EventEmitter<ReferenceClick>();
@@ -310,27 +367,42 @@ export class WorkReaderComponent implements OnInit, OnChanges {
 
   // Component state
   currentUnitNumber = signal(1);
+  currentPageNumber = signal(1);
   unit = signal<WorkUnitResponse | null>(null);
+  page = signal<PageResponse | null>(null);
   workMetadata = signal<WorkMetadata | null>(null);
   loading = signal(true);
   error = signal<string | null>(null);
 
   constructor() {
-    // Load initial unit or use input
-    const initial = this.initialUnit ?? 1;
-    this.currentUnitNumber.set(initial);
+    // Load initial unit/page or use defaults
+    if (this.initialUnit !== undefined) {
+      this.currentUnitNumber.set(this.initialUnit);
+    }
+    if (this.initialPage !== undefined) {
+      this.currentPageNumber.set(this.initialPage);
+    }
   }
 
   ngOnInit() {
+    // Load metadata first, then content will be loaded automatically
     this.loadWorkMetadata();
-    this.loadUnit();
   }
 
   ngOnChanges() {
     if (this.initialUnit !== undefined && this.initialUnit !== this.currentUnitNumber()) {
       this.currentUnitNumber.set(this.initialUnit);
-      this.loadUnit();
+      this.loadContent();
     }
+    if (this.initialPage !== undefined && this.initialPage !== this.currentPageNumber()) {
+      this.currentPageNumber.set(this.initialPage);
+      this.loadContent();
+    }
+  }
+
+  isBook(): boolean {
+    const metadata = this.workMetadata();
+    return metadata ? metadata.totalPages > 0 : false;
   }
 
   private async loadWorkMetadata() {
@@ -344,17 +416,35 @@ export class WorkReaderComponent implements OnInit, OnChanges {
           author: response.author,
           type: response.type,
           totalUnits: response.totalUnits,
+          totalPages: response.totalPages || 0,
         });
+        // Load content after metadata is available
+        await this.loadContent();
       }
     } catch (err) {
       console.error('Error loading work metadata:', err);
     }
   }
 
+  private async loadContent() {
+    if (this.isBook()) {
+      await this.loadPage();
+    } else {
+      await this.loadUnit();
+    }
+  }
+
   onSelectionChange(selection: UnitSelection) {
-    this.currentUnitNumber.set(selection.unitNumber);
-    this.loadUnit();
-    this.navigationChange.emit({ unitNumber: selection.unitNumber });
+    if (this.isBook()) {
+      // For books, selection might be chapter-based, default to first page
+      this.currentPageNumber.set(selection.unitNumber);
+      this.loadPage();
+      this.navigationChange.emit({ pageNumber: selection.unitNumber });
+    } else {
+      this.currentUnitNumber.set(selection.unitNumber);
+      this.loadUnit();
+      this.navigationChange.emit({ unitNumber: selection.unitNumber });
+    }
   }
 
   onProofTextClick(proofText: ProofText) {
@@ -367,6 +457,32 @@ export class WorkReaderComponent implements OnInit, OnChanges {
     });
   }
 
+  private async loadPage() {
+    this.loading.set(true);
+    this.error.set(null);
+
+    try {
+      const url = `${this.apiUrl}/${this.workSlug}/pages/${this.currentPageNumber()}`;
+      const response = await this.http.get<PageResponse>(url).toPromise();
+
+      if (response) {
+        this.page.set(response);
+        this.unit.set(null); // Clear unit data
+
+        // Update the selector's current position
+        const selectorComponent = this.selector();
+        if (selectorComponent) {
+          selectorComponent.updateUnit(this.currentPageNumber());
+        }
+      }
+    } catch (err) {
+      this.error.set('Failed to load page. Please try again.');
+      console.error('Error loading page:', err);
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
   private async loadUnit() {
     this.loading.set(true);
     this.error.set(null);
@@ -377,6 +493,7 @@ export class WorkReaderComponent implements OnInit, OnChanges {
 
       if (response) {
         this.unit.set(response);
+        this.page.set(null); // Clear page data
 
         // Update the selector's current unit
         const selectorComponent = this.selector();
@@ -393,6 +510,7 @@ export class WorkReaderComponent implements OnInit, OnChanges {
   }
 
   getUnitLabel(): string {
+    if (this.isBook()) return 'Page';
     const type = this.workMetadata()?.type;
     if (type === 'catechism') return 'Q.';
     if (type === 'confession') return 'Article';
@@ -400,14 +518,32 @@ export class WorkReaderComponent implements OnInit, OnChanges {
     return 'Unit';
   }
 
-  canGoNext(): boolean {
+  getCurrentPosition(): number {
+    return this.isBook() ? this.currentPageNumber() : this.currentUnitNumber();
+  }
+
+  getTotalCount(): number {
     const metadata = this.workMetadata();
-    if (!metadata) return false;
-    return this.currentUnitNumber() < metadata.totalUnits;
+    if (!metadata) return 0;
+    return this.isBook() ? metadata.totalPages : metadata.totalUnits;
+  }
+
+  canGoNext(): boolean {
+    return this.getCurrentPosition() < this.getTotalCount();
+  }
+
+  canGoPrevious(): boolean {
+    return this.getCurrentPosition() > 1;
   }
 
   async previousUnit() {
-    if (this.currentUnitNumber() > 1) {
+    if (!this.canGoPrevious()) return;
+
+    if (this.isBook()) {
+      this.currentPageNumber.update(p => p - 1);
+      await this.loadPage();
+      this.navigationChange.emit({ pageNumber: this.currentPageNumber() });
+    } else {
       this.currentUnitNumber.update(q => q - 1);
       await this.loadUnit();
       this.navigationChange.emit({ unitNumber: this.currentUnitNumber() });
@@ -415,7 +551,13 @@ export class WorkReaderComponent implements OnInit, OnChanges {
   }
 
   async nextUnit() {
-    if (this.canGoNext()) {
+    if (!this.canGoNext()) return;
+
+    if (this.isBook()) {
+      this.currentPageNumber.update(p => p + 1);
+      await this.loadPage();
+      this.navigationChange.emit({ pageNumber: this.currentPageNumber() });
+    } else {
       this.currentUnitNumber.update(q => q + 1);
       await this.loadUnit();
       this.navigationChange.emit({ unitNumber: this.currentUnitNumber() });

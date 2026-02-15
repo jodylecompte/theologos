@@ -41,12 +41,14 @@ export interface NavigationChange {
   template: `
     <div class="bible-reader">
       <header class="reader-header">
-        <div class="header-top">
+        <div class="header-row">
           <app-book-selector
             (selectionChange)="onSelectionChange($event)" />
+          <div class="header-info">
+            <h1>{{ bookName() }} {{ chapterNumber() }}</h1>
+            <span class="translation-info">{{ translationName() }}</span>
+          </div>
         </div>
-        <h1>{{ bookName() }} {{ chapterNumber() }}</h1>
-        <p class="translation-info">{{ translationName() }}</p>
       </header>
 
       @if (loading()) {
@@ -96,20 +98,31 @@ export interface NavigationChange {
       padding-bottom: 1rem;
     }
 
-    .header-top {
-      margin-bottom: 1.5rem;
+    .header-row {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .header-info {
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+      flex: 1;
     }
 
     .reader-header h1 {
       margin: 0;
-      font-size: 2rem;
+      font-size: 1.5rem;
       color: #333;
+      font-weight: 600;
     }
 
     .translation-info {
-      margin: 0.5rem 0 0 0;
       color: #666;
       font-size: 0.9rem;
+      font-style: italic;
     }
 
     .loading, .error {

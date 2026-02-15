@@ -370,6 +370,44 @@ function parseReference(ref: string): ParsedReference | null {
 }
 
 /**
+ * Detect Bible references in free-form text
+ * Finds direct inline references in common formats:
+ *   - "Romans 8:28"
+ *   - "1 Corinthians 13:4-7"
+ *   - "1st Cor 13:4"
+ *   - "(see Romans 8:28)"
+ *   - "cf. 1 John 3:16"
+ *
+ * Does NOT detect complex separated references like:
+ *   - "In Romans we read...verse 42 of chapter 13"
+ */
+export function detectReferences(text: string): string[] {
+  const references: string[] = [];
+
+  // Regex pattern to match common inline reference formats:
+  // Optional prefix (see, cf., etc.) + Book Name + Chapter:Verse
+  // Handles numbered books (1, 2, 3, 1st, 2nd, 3rd, I, II, III)
+  const pattern = /\b(?:(?:see|cf\.|compare|cp\.)\s+)?(?:\()?([1-3](?:st|nd|rd)?\s+|I{1,3}\s+)?([A-Z][a-z]+(?:\s+of\s+[A-Z][a-z]+)?\.?)\s+(\d+):(\d+(?:-\d+)?(?:\s*,\s*\d+(?:-\d+)?)*)\)?/gi;
+
+  let match;
+  while ((match = pattern.exec(text)) !== null) {
+    const [fullMatch, bookNumber, bookName, chapter, verses] = match;
+
+    // Reconstruct the reference string
+    const bookPart = (bookNumber || '').trim() + ' ' + bookName.trim();
+    const reference = `${bookPart.trim()} ${chapter}:${verses}`;
+
+    // Validate that the book name is recognized
+    const normalized = normalizeBookName(bookPart);
+    if (normalized) {
+      references.push(reference);
+    }
+  }
+
+  return references;
+}
+
+/**
  * Parse multiple references separated by semicolons
  * Example: "Romans 8:28; 1 Cor 13:4-7"
  */
@@ -468,4 +506,39 @@ export async function parseAndResolve(
 }> {
   const parsed = parseReferences(input);
   return resolveReferences(parsed);
+}
+
+/**
+ * Detect, parse, and resolve references from free-form text
+ * Useful for importing books where references are embedded in content
+ *
+ * Example:
+ *   "As we see in Romans 8:28 and 1 John 3:16-17, God works all things..."
+ *   → Detects both references
+ *   → Parses them into structured data
+ *   → Resolves to BibleVerse IDs
+ */
+export async function detectAndResolve(
+  text: string
+): Promise<{
+  resolved: ResolvedReference[];
+  unresolved: string[];
+  detectedCount: number;
+}> {
+  const detectedRefs = detectReferences(text);
+  const allParsed: ParsedReference[] = [];
+
+  // Parse each detected reference
+  for (const ref of detectedRefs) {
+    const parsed = parseReferences(ref);
+    allParsed.push(...parsed);
+  }
+
+  const { resolved, unresolved } = await resolveReferences(allParsed);
+
+  return {
+    resolved,
+    unresolved,
+    detectedCount: detectedRefs.length,
+  };
 }

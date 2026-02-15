@@ -4,3 +4,10 @@
 /.nx/cache
 /.nx/workspace-data
 .angular
+
+# Generated Prisma files
+libs/database/src/__generated__
+
+# Dependencies
+node_modules
+package-lock.json

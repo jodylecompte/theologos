@@ -1,1 +1,16 @@
-<router-outlet />
+<div class="app-layout">
+  <app-header (libraryClick)="openLibrary()"></app-header>
+
+  <main class="app-main">
+    <router-outlet />
+  </main>
+
+  <app-footer></app-footer>
+
+  @if (libraryOpen()) {
+    <app-library-modal
+      (workSelected)="onWorkSelected($event)"
+      (modalClosed)="closeLibrary()">
+    </app-library-modal>
+  }
+</div>

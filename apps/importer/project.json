@@ -102,6 +102,46 @@
         "command": "node -r @swc-node/register apps/importer/src/jobs/import-wsc.ts",
         "cwd": "{workspaceRoot}"
       }
+    },
+    "test:refs": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["^build"],
+      "options": {
+        "command": "node -r @swc-node/register apps/importer/src/test-reference-detector.ts",
+        "cwd": "{workspaceRoot}"
+      }
+    },
+    "analyze-pdf": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["^build"],
+      "options": {
+        "command": "node -r @swc-node/register apps/importer/src/tools/analyze-pdf.ts",
+        "cwd": "{workspaceRoot}"
+      }
+    },
+    "create-metadata": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["^build"],
+      "options": {
+        "command": "node -r @swc-node/register apps/importer/src/tools/create-book-metadata.ts",
+        "cwd": "{workspaceRoot}"
+      }
+    },
+    "detect-chapters": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["^build"],
+      "options": {
+        "command": "node -r @swc-node/register apps/importer/src/tools/detect-chapters.ts",
+        "cwd": "{workspaceRoot}"
+      }
+    },
+    "import-book": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["^build"],
+      "options": {
+        "command": "node -r @swc-node/register apps/importer/src/jobs/import-book.ts",
+        "cwd": "{workspaceRoot}"
+      }
     }
   },
   "tags": ["scope:backend", "type:app"]

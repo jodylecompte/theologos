@@ -11,8 +11,61 @@ const WORK_SLUG_MAP: Record<string, string> = {
   'heidelberg': 'Heidelberg Catechism',
   'apostles-creed': 'Apostles\' Creed',
   'nicene-creed': 'Nicene Creed',
+  'the-loveliness-of-christ': 'THE LOVELINESS OF CHRIST',
   // Add more as you import them
 };
+
+// Helper to create slug from title
+function titleToSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+// Helper to get slug from title, checking map first
+function getSlugForTitle(title: string): string {
+  // Check if title is in the map
+  for (const [slug, mappedTitle] of Object.entries(WORK_SLUG_MAP)) {
+    if (mappedTitle === title) {
+      return slug;
+    }
+  }
+  // Otherwise generate a slug
+  return titleToSlug(title);
+}
+
+/**
+ * GET /api/works
+ *
+ * Returns all works in the library
+ */
+router.get('/', async (req, res) => {
+  try {
+    const works = await prisma.work.findMany({
+      orderBy: {
+        title: 'asc',
+      },
+    });
+
+    const workItems = works.map(work => ({
+      id: work.id,
+      title: work.title,
+      author: work.author,
+      type: work.type,
+      tradition: work.tradition,
+      slug: getSlugForTitle(work.title),
+    }));
+
+    res.json({
+      works: workItems,
+      totalCount: workItems.length,
+    });
+  } catch (error) {
+    console.error('Error fetching works:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 /**
  * GET /api/works/:slug
@@ -37,11 +90,15 @@ router.get('/:slug', async (req, res) => {
       },
       include: {
         units: {
+          where: {
+            parentUnitId: null, // Only top-level units (chapters/questions)
+          },
           orderBy: {
             positionIndex: 'asc',
           },
           include: {
             references: true,
+            children: true, // Include child pages for books
           },
         },
       },
@@ -73,14 +130,18 @@ router.get('/:slug', async (req, res) => {
       };
     });
 
+    // Calculate total pages (for books with page-level units)
+    const totalPages = work.units.reduce((sum, unit) => sum + (unit.children?.length || 0), 0);
+
     res.json({
       slug,
       title: work.title,
       author: work.author,
       type: work.type,
       tradition: work.tradition,
-      units,
+      units, // Top-level units (chapters/questions)
       totalUnits: units.length,
+      totalPages: totalPages > 0 ? totalPages : units.length, // Pages for books, units for catechisms
     });
   } catch (error) {
     console.error('Error fetching work:', error);
@@ -256,6 +317,158 @@ router.get('/:slug/units/:unitNumber', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching work unit:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * GET /api/works/:slug/pages/:pageNumber
+ *
+ * Returns a single page with full details including references
+ * For books with page-level granularity
+ */
+router.get('/:slug/pages/:pageNumber', async (req, res) => {
+  try {
+    const { slug, pageNumber: pageNumberStr } = req.params;
+    const pageNumber = parseInt(pageNumberStr, 10);
+
+    if (isNaN(pageNumber) || pageNumber < 1) {
+      return res.status(400).json({ error: 'Invalid page number (must be >= 1)' });
+    }
+
+    const workTitle = WORK_SLUG_MAP[slug];
+
+    if (!workTitle) {
+      return res.status(404).json({
+        error: `Work not found. Valid slugs: ${Object.keys(WORK_SLUG_MAP).join(', ')}`
+      });
+    }
+
+    // Find the work
+    const work = await prisma.work.findFirst({
+      where: {
+        title: workTitle,
+      },
+    });
+
+    if (!work) {
+      return res.status(404).json({
+        error: `Work "${workTitle}" not found in database`
+      });
+    }
+
+    // Find the specific page with all references and Bible text
+    const page = await prisma.workUnit.findFirst({
+      where: {
+        workId: work.id,
+        positionIndex: pageNumber,
+        type: 'page', // Only get page-level units
+      },
+      include: {
+        parentUnit: true, // Include chapter info
+        references: {
+          include: {
+            bibleVerse: {
+              include: {
+                chapter: {
+                  include: {
+                    book: true,
+                  },
+                },
+                textSegments: {
+                  where: {
+                    translation: {
+                      abbreviation: 'WEB',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!page) {
+      return res.status(404).json({ error: `Page ${pageNumber} not found in ${workTitle}` });
+    }
+
+    // Group references by proximity
+    interface ProofText {
+      displayText: string;
+      references: Array<{
+        book: string;
+        chapter: number;
+        verse: number;
+        text: string;
+      }>;
+    }
+
+    const proofTexts: ProofText[] = [];
+    const sortedRefs = page.references.sort((a, b) => {
+      return a.bibleVerse.canonicalOrderIndex - b.bibleVerse.canonicalOrderIndex;
+    });
+
+    let currentGroup: ProofText | null = null;
+
+    for (const ref of sortedRefs) {
+      const verse = ref.bibleVerse;
+      const chapter = verse.chapter;
+      const book = chapter.book;
+      const verseText = verse.textSegments.map(seg => seg.contentText).join(' ');
+
+      const refData = {
+        book: book.canonicalName,
+        chapter: chapter.chapterNumber,
+        verse: verse.verseNumber,
+        text: verseText,
+      };
+
+      // Check if this verse continues the current group
+      if (currentGroup && currentGroup.references.length > 0) {
+        const lastRef = currentGroup.references[currentGroup.references.length - 1];
+        const sameChapter = lastRef.book === refData.book && lastRef.chapter === refData.chapter;
+        const consecutive = sameChapter && lastRef.verse === refData.verse - 1;
+
+        if (consecutive || sameChapter) {
+          currentGroup.references.push(refData);
+          if (consecutive) {
+            const firstRef = currentGroup.references[0];
+            const lastVerse = currentGroup.references[currentGroup.references.length - 1].verse;
+            currentGroup.displayText = `${firstRef.book} ${firstRef.chapter}:${firstRef.verse}${
+              lastVerse > firstRef.verse ? `-${lastVerse}` : ''
+            }`;
+          } else {
+            currentGroup.displayText = `${refData.book} ${refData.chapter}:${currentGroup.references
+              .map(r => r.verse)
+              .join(', ')}`;
+          }
+        } else {
+          currentGroup = {
+            displayText: `${refData.book} ${refData.chapter}:${refData.verse}`,
+            references: [refData],
+          };
+          proofTexts.push(currentGroup);
+        }
+      } else {
+        currentGroup = {
+          displayText: `${refData.book} ${refData.chapter}:${refData.verse}`,
+          references: [refData],
+        };
+        proofTexts.push(currentGroup);
+      }
+    }
+
+    res.json({
+      workSlug: slug,
+      workTitle: work.title,
+      pageNumber,
+      chapterTitle: page.parentUnit?.title,
+      content: page.contentText,
+      proofTexts,
+    });
+  } catch (error) {
+    console.error('Error fetching page:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

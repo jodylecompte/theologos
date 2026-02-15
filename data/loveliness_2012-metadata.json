@@ -1,0 +1,41 @@
+{
+  "title": "THE LOVELINESS OF CHRIST",
+  "author": "Samuel Rutherford",
+  "slug": "the-loveliness-of-christ",
+  "type": "book",
+  "tradition": null,
+  "pdfFile": "data/loveliness_2012.pdf",
+  "detectedChapters": [],
+  "chapters": [
+    {
+      "number": 1,
+      "title": "Preface",
+      "startPage": 3,
+      "endPage": 4
+    },
+    {
+      "number": 2,
+      "title": "Biographical Background",
+      "startPage": 5,
+      "endPage": 47
+    },
+    {
+      "number": 3,
+      "title": "To Mistress Taylor",
+      "startPage": 48,
+      "endPage": 50
+    },
+    {
+      "number": 4,
+      "title": "To the Lady Earlstoun",
+      "startPage": 51,
+      "endPage": 51
+    },
+    {
+      "number": 5,
+      "title": "For Marion M’Knaught",
+      "startPage": 52,
+      "endPage": 54
+    }
+  ]
+}

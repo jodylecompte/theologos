@@ -28,6 +28,7 @@ interface BibleReference {
         <app-work-reader
           [workSlug]="workSlug()"
           [initialUnit]="workUnitNumber()"
+          [initialPage]="workPageNumber()"
           (referenceClick)="onWorkReferenceClick($event)"
           (navigationChange)="onWorkNavChange($event)">
         </app-work-reader>
@@ -38,14 +39,16 @@ interface BibleReference {
     .reader-container {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 2rem;
-      height: 100vh;
-      padding: 2rem;
+      gap: 1.5rem;
+      height: 100%;
+      padding: 1.5rem;
+      padding-bottom: 1.5rem;
       box-sizing: border-box;
     }
 
     .left-pane, .right-pane {
       overflow-y: auto;
+      overflow-x: hidden;
       border: 1px solid #ddd;
       border-radius: 8px;
       background: white;
@@ -59,14 +62,16 @@ interface BibleReference {
         grid-template-rows: 1fr 1fr;
         gap: 1rem;
         padding: 1rem;
+        padding-bottom: 1rem;
       }
     }
 
     /* Tablet: slightly smaller gap */
     @media (max-width: 1280px) and (min-width: 1025px) {
       .reader-container {
-        gap: 1.5rem;
-        padding: 1.5rem;
+        gap: 1.25rem;
+        padding: 1.25rem;
+        padding-bottom: 1.25rem;
       }
     }
   `]
@@ -77,8 +82,9 @@ export class ReaderContainerComponent {
 
   // State
   bibleRef = signal<BibleReference>({ book: 'Genesis', chapter: 1 });
-  workSlug = signal<string>('wsc'); // Default to Westminster Shorter Catechism
+  workSlug = signal<string>('the-loveliness-of-christ'); // Default to book
   workUnitNumber = signal<number>(1);
+  workPageNumber = signal<number>(1);
   targetVerse = signal<number | undefined>(undefined);
 
   constructor() {
@@ -101,6 +107,12 @@ export class ReaderContainerComponent {
         const unitNum = parseInt(params['unit'], 10);
         if (!isNaN(unitNum) && unitNum >= 1) {
           this.workUnitNumber.set(unitNum);
+        }
+      }
+      if (params['page']) {
+        const pageNum = parseInt(params['page'], 10);
+        if (!isNaN(pageNum) && pageNum >= 1) {
+          this.workPageNumber.set(pageNum);
         }
       }
       if (params['verse']) {
@@ -130,16 +142,27 @@ export class ReaderContainerComponent {
 
   onWorkNavChange(nav: WorkNavChange) {
     // Update URL when work pane navigates
-    this.workUnitNumber.set(nav.unitNumber);
+    if (nav.unitNumber !== undefined) {
+      this.workUnitNumber.set(nav.unitNumber);
+    }
+    if (nav.pageNumber !== undefined) {
+      this.workPageNumber.set(nav.pageNumber);
+    }
     this.updateUrl();
   }
 
   private updateUrl() {
     const queryParams: any = {
       bible: `${this.bibleRef().book}.${this.bibleRef().chapter}`,
-      work: this.workSlug(),
-      unit: this.workUnitNumber()
+      work: this.workSlug()
     };
+
+    // Include either page or unit based on what's relevant
+    if (this.workPageNumber() > 1 || this.workSlug() === 'the-loveliness-of-christ') {
+      queryParams.page = this.workPageNumber();
+    } else if (this.workUnitNumber() > 1 || this.workSlug() === 'wsc') {
+      queryParams.unit = this.workUnitNumber();
+    }
 
     if (this.targetVerse() !== undefined) {
       queryParams.verse = this.targetVerse();

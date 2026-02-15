@@ -266,6 +266,7 @@ export class WorkUnitSelectorComponent implements OnInit, OnChanges {
     if (type === 'catechism') return 'Q.';
     if (type === 'confession') return 'Art.';
     if (type === 'creed') return '§';
+    if (type === 'book') return 'Chapter';
     return 'Unit';
   }
 
