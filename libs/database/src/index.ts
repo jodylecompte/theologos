@@ -37,3 +37,24 @@ export type {
   BibleTextSegment,
   Prisma,
 } from './__generated__';
+
+// Re-export text transforms for backend and frontend use
+export {
+  promoteHeading,
+  demoteHeading,
+  markParagraph,
+  dehyphenate,
+  fixDropCap,
+  applyTransform,
+  getTransformLabel,
+  type TransformName,
+} from './text-transforms';
+
+// Re-export flag detection for backend and frontend use
+export {
+  computeFlags,
+  getFlagLabel,
+  getFlagDescription,
+  type FlagType,
+  type FlagDetectionResult,
+} from './flag-detector';

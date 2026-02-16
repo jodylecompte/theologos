@@ -15,7 +15,8 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@org/database": ["libs/database/src/index.ts"]
+      "@org/database": ["libs/database/src/index.ts"],
+      "@org/database/browser": ["libs/database/src/browser.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

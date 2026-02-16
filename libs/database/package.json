@@ -2,6 +2,10 @@
   "name": "@org/database",
   "version": "0.0.1",
   "type": "commonjs",
+  "exports": {
+    ".": "./src/index.ts",
+    "./browser": "./src/browser.ts"
+  },
   "scripts": {
     "migrate": "prisma migrate dev --schema prisma/schema.prisma",
     "migrate:deploy": "prisma migrate deploy --schema prisma/schema.prisma",
@@ -10,5 +14,9 @@
     "studio": "prisma studio --schema prisma/schema.prisma",
     "db:push": "prisma db push --schema prisma/schema.prisma",
     "db:seed": "prisma db seed --schema prisma/schema.prisma"
+  },
+  "dependencies": {
+    "@prisma/client": "7.4.0",
+    "prisma": "7.4.0"
   }
 }

@@ -1,4 +1,6 @@
 import { PrismaClient } from './__generated__';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
 
 /**
  * Singleton instance of PrismaClient for the database library.
@@ -15,9 +17,18 @@ declare global {
   var prisma: PrismaClient | undefined;
 }
 
+// Create PostgreSQL connection pool
+const pool = new Pool({
+  connectionString: process.env['DATABASE_URL'],
+});
+
+// Create Prisma adapter
+const adapter = new PrismaPg(pool);
+
 export const prisma =
   global.prisma ||
   new PrismaClient({
+    adapter,
     log: process.env['NODE_ENV'] === 'development' ? ['query', 'error', 'warn'] : ['error'],
   });
 

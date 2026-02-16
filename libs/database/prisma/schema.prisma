@@ -1,6 +1,5 @@
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 generator client {
@@ -88,6 +87,7 @@ model Work {
   author    String?
   type      String
   tradition String?
+  pdfPath   String?    // Path to source PDF file (e.g., "pdfs/loveliness-of-christ.pdf")
   units     WorkUnit[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
@@ -96,24 +96,36 @@ model Work {
   @@index([tradition])
 }
 
+enum WorkUnitStatus {
+  AUTO
+  EDITED
+  REVIEWED
+}
+
 model WorkUnit {
-  id            String      @id @default(uuid())
-  work          Work        @relation(fields: [workId], references: [id])
+  id            String          @id @default(uuid())
+  work          Work            @relation(fields: [workId], references: [id])
   workId        String
-  parentUnit    WorkUnit?   @relation("UnitHierarchy", fields: [parentUnitId], references: [id])
+  parentUnit    WorkUnit?       @relation("UnitHierarchy", fields: [parentUnitId], references: [id])
   parentUnitId  String?
-  children      WorkUnit[]  @relation("UnitHierarchy")
+  children      WorkUnit[]      @relation("UnitHierarchy")
   type          String
   positionIndex Int
+  pdfPageNumber Int?            // PDF page number (1-based) for this WorkUnit
   title         String?
-  contentText   String
+  contentText   String          // Auto-generated normalized text from imports
+  editedText    String?         // Manual edit override (when present, overrides contentText)
+  status        WorkUnitStatus  @default(AUTO)
+  flags         String[]        @default([]) // Review flags: HEADING_SUSPECT, FOOTNOTE_SUSPECT, METADATA_SUSPECT
   references    Reference[]
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
 
   @@index([workId])
   @@index([parentUnitId])
   @@index([type])
+  @@index([workId, positionIndex]) // Fast neighbor lookup
+  @@index([status, flags]) // Fast filtering by status and flags
 }
 
 model Reference {
