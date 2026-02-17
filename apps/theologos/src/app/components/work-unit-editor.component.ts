@@ -1,10 +1,12 @@
-import { Component, OnInit, OnDestroy, signal, inject, HostListener, computed, effect, ViewChild, ElementRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, OnDestroy, signal, inject, HostListener, computed, effect, ViewChild, ElementRef, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { WorkUnitService, type WorkUnitDetailResponse, type FlagType } from '../services/work-unit.service';
 import { PdfViewerComponent } from './pdf-viewer.component';
 import { applyTransform, getTransformLabel, type TransformName, getFlagLabel, getFlagDescription } from '@org/database/browser';
+import { marked } from 'marked';
 
 interface DiffLine {
   type: 'same' | 'removed' | 'added';
@@ -278,13 +280,7 @@ import { TransformRangeDialogComponent } from './transform-range-dialog.componen
               <span class="panel-subtitle">Live rendering</span>
             </div>
             <div class="panel-content preview-content">
-              <div class="preview-render">
-                @for (paragraph of getPreviewParagraphs(); track $index) {
-                  <p class="preview-paragraph" [class.indented]="paragraph.isIndented">
-                    {{ paragraph.text }}
-                  </p>
-                }
-              </div>
+              <div class="preview-render markdown-body" [innerHTML]="renderedMarkdown()"></div>
             </div>
           </div>
         </div>
@@ -845,6 +841,43 @@ import { TransformRangeDialogComponent } from './transform-range-dialog.componen
       margin-bottom: 0;
     }
 
+    /* Markdown Body Styles */
+    .markdown-body h1,
+    .markdown-body h2,
+    .markdown-body h3 {
+      margin-top: 24px;
+      margin-bottom: 16px;
+      font-weight: 600;
+      line-height: 1.25;
+      color: #1a1a1a;
+    }
+
+    .markdown-body h1 {
+      font-size: 2em;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 0.3em;
+    }
+
+    .markdown-body h2 {
+      font-size: 1.5em;
+    }
+
+    .markdown-body h3 {
+      font-size: 1.25em;
+    }
+
+    .markdown-body p {
+      margin-top: 0;
+      margin-bottom: 16px;
+      text-align: justify;
+    }
+
+    .markdown-body blockquote {
+      padding: 0 1em;
+      color: #6c757d;
+      border-left: 0.25em solid #dfe2e5;
+    }
+
     /* Loading/Error states */
     .loading-container,
     .error-container {
@@ -888,11 +921,15 @@ export class WorkUnitEditorComponent implements OnInit, OnDestroy {
   private workUnitService = inject(WorkUnitService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private platformId = inject(PLATFORM_ID);
+  private sanitizer = inject(DomSanitizer);
+  private isBrowser = isPlatformBrowser(this.platformId);
 
   @ViewChild('pdfViewer') pdfViewer?: PdfViewerComponent;
   @ViewChild('editorTextarea') editorTextarea?: ElementRef<HTMLTextAreaElement>;
 
   // Route params
+  private workId = signal<string>('');
   private workUnitId = signal<string>('');
 
   // Data state
@@ -962,18 +999,44 @@ export class WorkUnitEditorComponent implements OnInit, OnDestroy {
   });
 
   ngOnInit() {
-    // Load hotkey preference from localStorage
-    const hotkeyPref = localStorage.getItem('workunit-editor-hotkey-mode');
-    if (hotkeyPref === 'alt') {
-      this.hotkeyModeAlt = true;
+    // Load hotkey preference from localStorage (browser only)
+    if (this.isBrowser) {
+      const hotkeyPref = localStorage.getItem('workunit-editor-hotkey-mode');
+      if (hotkeyPref === 'alt') {
+        this.hotkeyModeAlt = true;
+      }
     }
 
-    // Get workUnitId from route
-    this.route.paramMap.subscribe(params => {
-      const id = params.get('workUnitId');
-      if (id) {
-        this.workUnitId.set(id);
+    // Get route params
+    this.route.paramMap.subscribe(async params => {
+      const workId = params.get('workId');
+      const workUnitId = params.get('workUnitId');
+
+      if (!workId) {
+        this.error.set('No work ID provided');
+        return;
+      }
+
+      this.workId.set(workId);
+
+      if (workUnitId) {
+        // Direct work unit navigation
+        this.workUnitId.set(workUnitId);
         this.loadWorkUnit();
+      } else {
+        // Load first work unit for this work
+        try {
+          const firstUnitId = await this.workUnitService.getFirstWorkUnitId(workId);
+          if (firstUnitId) {
+            // Navigate to URL with work unit ID (replaceUrl to avoid history entry)
+            this.router.navigate(['/admin/works', workId, firstUnitId], { replaceUrl: true });
+          } else {
+            this.error.set('No work units found for this work');
+          }
+        } catch (err) {
+          console.error('Error loading first work unit:', err);
+          this.error.set('Failed to load work units');
+        }
       }
     });
   }
@@ -1073,8 +1136,10 @@ export class WorkUnitEditorComponent implements OnInit, OnDestroy {
   }
 
   onHotkeyModeChange() {
-    // Store preference in localStorage
-    localStorage.setItem('workunit-editor-hotkey-mode', this.hotkeyModeAlt ? 'alt' : 'plain');
+    // Store preference in localStorage (browser only)
+    if (this.isBrowser) {
+      localStorage.setItem('workunit-editor-hotkey-mode', this.hotkeyModeAlt ? 'alt' : 'plain');
+    }
   }
 
   async manualSave() {
@@ -1154,9 +1219,7 @@ export class WorkUnitEditorComponent implements OnInit, OnDestroy {
     }
 
     // Navigate to prev work unit
-    await this.router.navigate(['../../', currentData.navigation.prevId, 'edit'], {
-      relativeTo: this.route
-    });
+    await this.router.navigate(['/admin/works', this.workId(), currentData.navigation.prevId]);
   }
 
   async navigateNext() {
@@ -1173,9 +1236,7 @@ export class WorkUnitEditorComponent implements OnInit, OnDestroy {
     }
 
     // Navigate to next work unit
-    await this.router.navigate(['../../', currentData.navigation.nextId, 'edit'], {
-      relativeTo: this.route
-    });
+    await this.router.navigate(['/admin/works', this.workId(), currentData.navigation.nextId]);
   }
 
   toggleDiffView() {
@@ -1262,9 +1323,7 @@ export class WorkUnitEditorComponent implements OnInit, OnDestroy {
 
       if (nextFlagged) {
         // Navigate to the flagged unit
-        await this.router.navigate(['../../', nextFlagged.id, 'edit'], {
-          relativeTo: this.route
-        });
+        await this.router.navigate(['/admin/works', this.workId(), nextFlagged.id]);
       } else {
         // No more flagged units, show message
         alert('No more flagged WorkUnits found in AUTO status.');
@@ -1313,14 +1372,27 @@ export class WorkUnitEditorComponent implements OnInit, OnDestroy {
   }
 
   goBack() {
-    // Navigate back to a sensible parent route
-    // For now, just go to the reader root
-    this.router.navigate(['/reader']);
+    // Navigate back to works list
+    this.router.navigate(['/admin/works']);
   }
 
   reload() {
     this.loadWorkUnit();
   }
+
+  // Computed signal for rendered markdown
+  renderedMarkdown = computed(() => {
+    const content = this.currentTextSignal();
+    if (!content) return this.sanitizer.bypassSecurityTrustHtml('');
+
+    try {
+      const html = marked.parse(content);
+      return this.sanitizer.bypassSecurityTrustHtml(html);
+    } catch (err) {
+      console.error('Markdown rendering error:', err);
+      return this.sanitizer.bypassSecurityTrustHtml('<p>Error rendering markdown</p>');
+    }
+  });
 
   getPreviewParagraphs(): Array<{ text: string; isIndented: boolean }> {
     const content = this.currentText || '';

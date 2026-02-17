@@ -7,13 +7,13 @@
     "./browser": "./src/browser.ts"
   },
   "scripts": {
-    "migrate": "prisma migrate dev --schema prisma/schema.prisma",
-    "migrate:deploy": "prisma migrate deploy --schema prisma/schema.prisma",
-    "migrate:reset": "prisma migrate reset --schema prisma/schema.prisma",
-    "generate": "prisma generate --schema prisma/schema.prisma",
-    "studio": "prisma studio --schema prisma/schema.prisma",
-    "db:push": "prisma db push --schema prisma/schema.prisma",
-    "db:seed": "prisma db seed --schema prisma/schema.prisma"
+    "migrate": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy",
+    "migrate:reset": "prisma migrate reset",
+    "generate": "prisma generate",
+    "studio": "prisma studio",
+    "db:push": "prisma db push",
+    "db:seed": "prisma db seed"
   },
   "dependencies": {
     "@prisma/client": "7.4.0",

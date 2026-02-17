@@ -66,15 +66,13 @@ export function cleanPdfText(text: string, options: CleanPdfTextOptions = {}): s
 
     const leadingWhitespaceWidth = currentIndent;
     const isHeading = isLikelyHeadingLine(lines, i, leadingWhitespaceWidth, baselineIndent);
-    const isIndented = !isHeading && leadingWhitespaceWidth >= baselineIndent + indentationThreshold;
 
-    if (isIndented && processedLines.length > 0) {
+    // For headings, ensure blank line before (for markdown)
+    if (isHeading && processedLines.length > 0) {
       const lastLine = processedLines[processedLines.length - 1];
       if (lastLine && lastLine.trim() !== '') {
         processedLines.push('');
       }
-      processedLines.push(`¶${normalizedLine}`);
-      continue;
     }
 
     processedLines.push(normalizedLine);

@@ -40,24 +40,48 @@ function getSlugForTitle(title: string): string {
 /**
  * GET /api/works
  *
- * Returns all works in the library
+ * Returns all works in the library with status counts
  */
 router.get('/', async (req, res) => {
   try {
     const works = await prisma.work.findMany({
+      include: {
+        _count: {
+          select: { units: true },
+        },
+      },
       orderBy: {
         title: 'asc',
       },
     });
 
-    const workItems = works.map(work => ({
-      id: work.id,
-      title: work.title,
-      author: work.author,
-      type: work.type,
-      tradition: work.tradition,
-      slug: getSlugForTitle(work.title),
-    }));
+    // Get status counts for each work
+    const workItems = await Promise.all(
+      works.map(async (work) => {
+        const statusCounts = await prisma.workUnit.groupBy({
+          by: ['status'],
+          where: { workId: work.id },
+          _count: true,
+        });
+
+        const reviewedCount = statusCounts.find(s => s.status === 'REVIEWED')?._count || 0;
+        const editedCount = statusCounts.find(s => s.status === 'EDITED')?._count || 0;
+        const autoCount = statusCounts.find(s => s.status === 'AUTO')?._count || 0;
+
+        return {
+          id: work.id,
+          title: work.title,
+          author: work.author,
+          type: work.type,
+          tradition: work.tradition,
+          slug: getSlugForTitle(work.title),
+          unitCount: work._count.units,
+          reviewedCount,
+          editedCount,
+          autoCount,
+        };
+      })
+    );
 
     res.json({
       works: workItems,

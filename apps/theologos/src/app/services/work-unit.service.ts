@@ -112,6 +112,15 @@ export class WorkUnitService {
   }
 
   /**
+   * Get the first WorkUnit ID for a work
+   * (API defaults to 'page' type, which has content)
+   */
+  async getFirstWorkUnitId(workId: string): Promise<string | null> {
+    const response = await this.getWorkUnitsForBook(workId, { limit: 1 });
+    return response.workUnits.length > 0 ? response.workUnits[0].id : null;
+  }
+
+  /**
    * Recompute flags for all WorkUnits in a book
    */
   async recomputeFlags(workId: string): Promise<{

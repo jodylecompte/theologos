@@ -12,13 +12,14 @@ const router = Router();
  * Query params:
  *   - status: AUTO | EDITED | REVIEWED
  *   - flag: HEADING_SUSPECT | FOOTNOTE_SUSPECT | METADATA_SUSPECT
+ *   - type: chapter | page | section (default: page for books, all for others)
  *   - limit: number (default 50)
  *   - offset: number (default 0)
  */
 router.get('/books/:bookId', async (req, res) => {
   try {
     const { bookId } = req.params;
-    const { status, flag, limit = '50', offset = '0' } = req.query;
+    const { status, flag, type, limit = '50', offset = '0' } = req.query;
 
     // Build filter
     const where: Prisma.WorkUnitWhereInput = {
@@ -33,6 +34,13 @@ router.get('/books/:bookId', async (req, res) => {
       where.flags = {
         has: flag,
       };
+    }
+
+    if (type && typeof type === 'string') {
+      where.type = type;
+    } else {
+      // Default: prefer pages for books (exclude empty chapter containers)
+      where.type = 'page';
     }
 
     // Parse pagination
@@ -110,19 +118,19 @@ router.get('/:workUnitId', async (req, res) => {
       return res.status(404).json({ error: 'Work unit not found' });
     }
 
-    // Get total count of sibling units (same workId, same parent, or both null)
+    // Get total count of units (same workId and type for flat navigation)
     const totalUnits = await prisma.workUnit.count({
       where: {
         workId: workUnit.workId,
-        parentUnitId: workUnit.parentUnitId,
+        type: workUnit.type, // Navigate within same type (pages with pages)
       },
     });
 
-    // Find previous unit (highest positionIndex < current, same workId and parent)
+    // Find previous unit (highest positionIndex < current, same workId and type)
     const prevUnit = await prisma.workUnit.findFirst({
       where: {
         workId: workUnit.workId,
-        parentUnitId: workUnit.parentUnitId,
+        type: workUnit.type,
         positionIndex: { lt: workUnit.positionIndex },
       },
       orderBy: {
@@ -133,11 +141,11 @@ router.get('/:workUnitId', async (req, res) => {
       },
     });
 
-    // Find next unit (lowest positionIndex > current, same workId and parent)
+    // Find next unit (lowest positionIndex > current, same workId and type)
     const nextUnit = await prisma.workUnit.findFirst({
       where: {
         workId: workUnit.workId,
-        parentUnitId: workUnit.parentUnitId,
+        type: workUnit.type,
         positionIndex: { gt: workUnit.positionIndex },
       },
       orderBy: {
@@ -148,11 +156,11 @@ router.get('/:workUnitId', async (req, res) => {
       },
     });
 
-    // Calculate position (1-based index)
+    // Calculate position (1-based index) - count units of same type with lower or equal position
     const position = await prisma.workUnit.count({
       where: {
         workId: workUnit.workId,
-        parentUnitId: workUnit.parentUnitId,
+        type: workUnit.type,
         positionIndex: { lte: workUnit.positionIndex },
       },
     });
