@@ -1,0 +1,7 @@
+{
+  "title": "Westminster Shorter Catechism",
+  "author": "Westminster Assembly",
+  "type": "confession",
+  "tradition": "Reformed",
+  "questionsFile": "data/wsc-questions.json"
+}

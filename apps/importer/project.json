@@ -103,6 +103,14 @@
         "cwd": "{workspaceRoot}"
       }
     },
+    "import:catechism": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["^build"],
+      "options": {
+        "command": "node -r @swc-node/register apps/importer/src/jobs/import-catechism.ts",
+        "cwd": "{workspaceRoot}"
+      }
+    },
     "test:refs": {
       "executor": "nx:run-commands",
       "dependsOn": ["^build"],

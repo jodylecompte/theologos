@@ -39,8 +39,14 @@ router.get('/books/:bookId', async (req, res) => {
     if (type && typeof type === 'string') {
       where.type = type;
     } else {
-      // Default: prefer pages for books (exclude empty chapter containers)
-      where.type = 'page';
+      // Default unit type depends on the work's type:
+      //   book → 'page'  (exclude empty chapter container units)
+      //   catechism/confession/anything else → 'question'
+      const work = await prisma.work.findUnique({
+        where: { id: bookId },
+        select: { type: true },
+      });
+      where.type = work?.type === 'book' ? 'page' : 'question';
     }
 
     // Parse pagination

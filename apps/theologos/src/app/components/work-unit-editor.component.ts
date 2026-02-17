@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { WorkUnitService, type WorkUnitDetailResponse, type FlagType } from '../services/work-unit.service';
-import { PdfViewerComponent } from './pdf-viewer.component';
 import { applyTransform, getTransformLabel, type TransformName, getFlagLabel, getFlagDescription } from '@org/database/browser';
 import { marked } from 'marked';
 
@@ -19,7 +18,7 @@ import { TransformRangeDialogComponent } from './transform-range-dialog.componen
 @Component({
   selector: 'app-work-unit-editor',
   standalone: true,
-  imports: [CommonModule, FormsModule, PdfViewerComponent, TransformRangeDialogComponent],
+  imports: [CommonModule, FormsModule, TransformRangeDialogComponent],
   template: `
     <div class="editor-container">
       <!-- Header with navigation -->
@@ -125,26 +124,7 @@ import { TransformRangeDialogComponent } from './transform-range-dialog.componen
         </div>
       } @else {
         <div class="editor-main">
-          <!-- Left: PDF Reference Panel -->
-          <div class="panel pdf-panel">
-            <div class="panel-header">
-              <h2>PDF Reference</h2>
-              @if (pdfPageNumber()) {
-                <span class="panel-subtitle">PDF Page {{ pdfPageNumber() }}</span>
-              } @else {
-                <span class="panel-subtitle">Page {{ positionIndex() }}</span>
-              }
-            </div>
-            <div class="panel-content pdf-content">
-              <app-pdf-viewer
-                #pdfViewer
-                [workId]="currentWorkId()"
-                [pageNumber]="pdfPageNumber()">
-              </app-pdf-viewer>
-            </div>
-          </div>
-
-          <!-- Middle: Text Editor -->
+          <!-- Left: Text Editor -->
           <div class="panel editor-panel">
             <div class="panel-header">
               <h2>Text Editor</h2>
@@ -527,7 +507,7 @@ import { TransformRangeDialogComponent } from './transform-range-dialog.componen
     /* Main 3-column layout */
     .editor-main {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-columns: 1fr 1fr;
       gap: 1rem;
       padding: 1rem;
       height: calc(100vh - 80px);
@@ -687,20 +667,6 @@ import { TransformRangeDialogComponent } from './transform-range-dialog.componen
       flex: 1;
       overflow: auto;
       padding: 1rem;
-    }
-
-    /* PDF Panel */
-    .pdf-content {
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .pdf-content app-pdf-viewer {
-      flex: 1;
-      min-height: 0;
-      display: flex;
-      flex-direction: column;
     }
 
     /* Editor Panel */
@@ -907,7 +873,7 @@ import { TransformRangeDialogComponent } from './transform-range-dialog.componen
     @media (max-width: 1400px) {
       .editor-main {
         grid-template-columns: 1fr;
-        grid-template-rows: auto auto auto;
+        grid-template-rows: auto auto;
         height: auto;
       }
 
@@ -925,7 +891,6 @@ export class WorkUnitEditorComponent implements OnInit, OnDestroy {
   private sanitizer = inject(DomSanitizer);
   private isBrowser = isPlatformBrowser(this.platformId);
 
-  @ViewChild('pdfViewer') pdfViewer?: PdfViewerComponent;
   @ViewChild('editorTextarea') editorTextarea?: ElementRef<HTMLTextAreaElement>;
 
   // Route params
@@ -974,7 +939,6 @@ export class WorkUnitEditorComponent implements OnInit, OnDestroy {
   hasNext = signal(false);
 
   // Prefetch state
-  private prefetchedPages = new Set<number>();
 
   // Next flagged navigation
   loadingNextFlagged = signal(false);
@@ -1386,7 +1350,7 @@ export class WorkUnitEditorComponent implements OnInit, OnDestroy {
     if (!content) return this.sanitizer.bypassSecurityTrustHtml('');
 
     try {
-      const html = marked.parse(content);
+      const html = marked.parse(content, { async: false });
       return this.sanitizer.bypassSecurityTrustHtml(html);
     } catch (err) {
       console.error('Markdown rendering error:', err);
@@ -1451,26 +1415,7 @@ export class WorkUnitEditorComponent implements OnInit, OnDestroy {
   }
 
   private async prefetchAdjacentPages() {
-    const currentPdfPage = this.pdfPageNumber();
-    if (!currentPdfPage || !this.pdfViewer) return;
-
-    // Prefetch previous page
-    if (currentPdfPage > 1 && !this.prefetchedPages.has(currentPdfPage - 1)) {
-      setTimeout(() => {
-        this.pdfViewer?.prefetchPage(currentPdfPage - 1);
-        this.prefetchedPages.add(currentPdfPage - 1);
-      }, 500);
-    }
-
-    // Prefetch next page
-    if (!this.prefetchedPages.has(currentPdfPage + 1)) {
-      setTimeout(() => {
-        this.pdfViewer?.prefetchPage(currentPdfPage + 1);
-        this.prefetchedPages.add(currentPdfPage + 1);
-      }, 1000);
-    }
-
-    // Also prefetch adjacent WorkUnit data
+    // Prefetch adjacent WorkUnit data
     const currentData = this.data();
     if (currentData?.navigation.prevId) {
       this.prefetchWorkUnit(currentData.navigation.prevId);

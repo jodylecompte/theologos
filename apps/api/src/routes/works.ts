@@ -3,20 +3,6 @@ import { prisma } from '../../../../libs/database/src/index';
 
 const router = Router();
 
-// Map of work slugs to database titles
-// This allows flexible URL slugs while maintaining database integrity
-const WORK_SLUG_MAP: Record<string, string> = {
-  'wsc': 'Westminster Shorter Catechism',
-  'wcf': 'Westminster Confession of Faith',
-  'heidelberg': 'Heidelberg Catechism',
-  'apostles-creed': 'Apostles\' Creed',
-  'nicene-creed': 'Nicene Creed',
-  'the-loveliness-of-christ': 'THE LOVELINESS OF CHRIST',
-  'when-i-don-t-desire-god': 'When I Don\'t Desire God',
-  'when-i-dont-desire-god': 'When I Don\'t Desire God', // Alternative slug format
-  // Add more as you import them
-};
-
 // Helper to create slug from title
 function titleToSlug(title: string): string {
   return title
@@ -25,16 +11,10 @@ function titleToSlug(title: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
-// Helper to get slug from title, checking map first
-function getSlugForTitle(title: string): string {
-  // Check if title is in the map
-  for (const [slug, mappedTitle] of Object.entries(WORK_SLUG_MAP)) {
-    if (mappedTitle === title) {
-      return slug;
-    }
-  }
-  // Otherwise generate a slug
-  return titleToSlug(title);
+// Resolve a URL slug to a work ID by scanning all works
+async function resolveSlug(slug: string): Promise<{ id: string; title: string } | null> {
+  const allWorks = await prisma.work.findMany({ select: { id: true, title: true } });
+  return allWorks.find(w => titleToSlug(w.title) === slug) ?? null;
 }
 
 /**
@@ -74,7 +54,7 @@ router.get('/', async (req, res) => {
           author: work.author,
           type: work.type,
           tradition: work.tradition,
-          slug: getSlugForTitle(work.title),
+          slug: titleToSlug(work.title),
           unitCount: work._count.units,
           reviewedCount,
           editedCount,
@@ -101,18 +81,16 @@ router.get('/', async (req, res) => {
 router.get('/:slug', async (req, res) => {
   try {
     const { slug } = req.params;
-    const workTitle = WORK_SLUG_MAP[slug];
 
-    if (!workTitle) {
-      return res.status(404).json({
-        error: `Work not found. Valid slugs: ${Object.keys(WORK_SLUG_MAP).join(', ')}`
-      });
+    const matched = await resolveSlug(slug);
+    if (!matched) {
+      return res.status(404).json({ error: `Work not found: ${slug}` });
     }
 
     // Find the work
-    const work = await prisma.work.findFirst({
+    const work = await prisma.work.findUnique({
       where: {
-        title: workTitle,
+        id: matched.id,
       },
       include: {
         units: {
@@ -132,7 +110,7 @@ router.get('/:slug', async (req, res) => {
 
     if (!work) {
       return res.status(404).json({
-        error: `Work "${workTitle}" not found in database`
+        error: `Work not found in database`
       });
     }
 
@@ -208,26 +186,11 @@ router.get('/:slug/units/:unitNumber', async (req, res) => {
       return res.status(400).json({ error: 'Invalid unit number (must be >= 1)' });
     }
 
-    const workTitle = WORK_SLUG_MAP[slug];
-
-    if (!workTitle) {
-      return res.status(404).json({
-        error: `Work not found. Valid slugs: ${Object.keys(WORK_SLUG_MAP).join(', ')}`
-      });
+    const matched = await resolveSlug(slug);
+    if (!matched) {
+      return res.status(404).json({ error: `Work not found: ${slug}` });
     }
-
-    // Find the work
-    const work = await prisma.work.findFirst({
-      where: {
-        title: workTitle,
-      },
-    });
-
-    if (!work) {
-      return res.status(404).json({
-        error: `Work "${workTitle}" not found in database`
-      });
-    }
+    const work = { id: matched.id };
 
     // Find the specific unit with all references and Bible text
     const unit = await prisma.workUnit.findFirst({
@@ -260,7 +223,7 @@ router.get('/:slug/units/:unitNumber', async (req, res) => {
     });
 
     if (!unit) {
-      return res.status(404).json({ error: `Unit ${unitNumber} not found in ${workTitle}` });
+      return res.status(404).json({ error: `Unit ${unitNumber} not found` });
     }
 
     // Parse content based on work type
@@ -381,26 +344,11 @@ router.get('/:slug/pages/:pageNumber', async (req, res) => {
       return res.status(400).json({ error: 'Invalid page number (must be >= 1)' });
     }
 
-    const workTitle = WORK_SLUG_MAP[slug];
-
-    if (!workTitle) {
-      return res.status(404).json({
-        error: `Work not found. Valid slugs: ${Object.keys(WORK_SLUG_MAP).join(', ')}`
-      });
+    const matched = await resolveSlug(slug);
+    if (!matched) {
+      return res.status(404).json({ error: `Work not found: ${slug}` });
     }
-
-    // Find the work
-    const work = await prisma.work.findFirst({
-      where: {
-        title: workTitle,
-      },
-    });
-
-    if (!work) {
-      return res.status(404).json({
-        error: `Work "${workTitle}" not found in database`
-      });
-    }
+    const work = { id: matched.id };
 
     // Find the specific page with all references and Bible text
     const page = await prisma.workUnit.findFirst({
@@ -435,7 +383,7 @@ router.get('/:slug/pages/:pageNumber', async (req, res) => {
     });
 
     if (!page) {
-      return res.status(404).json({ error: `Page ${pageNumber} not found in ${workTitle}` });
+      return res.status(404).json({ error: `Page ${pageNumber} not found` });
     }
 
     // Group references by proximity
