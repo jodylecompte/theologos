@@ -283,7 +283,8 @@ const BOOK_NAME_ALIASES: Record<string, string> = {
  * Normalize book name to canonical form
  */
 function normalizeBookName(rawName: string): string | null {
-  const cleaned = rawName.trim().toLowerCase();
+  // Strip trailing period(s) so abbreviations like "Ps.", "Isa.", "Cor." normalize correctly
+  const cleaned = rawName.trim().toLowerCase().replace(/\.+$/, '');
 
   // Try direct lookup in aliases
   if (BOOK_NAME_ALIASES[cleaned]) {

@@ -16,7 +16,7 @@
 
 import { prisma, disconnect } from '../../../../libs/database/src/index';
 import { createLogger } from '../utils/logger';
-import { resolveReferences, parseReferences, type ParsedReference } from '../utils/reference-parser';
+import { resolveReferences, parseReferences, detectReferences, type ParsedReference } from '../utils/reference-parser';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -39,12 +39,19 @@ interface CreedProof {
   References: string[];
 }
 
+interface CreedSubQuestion {
+  Number: string;
+  Question: string;
+  Answer: string;
+}
+
 interface CreedQuestion {
-  Number: number;
+  Number: number | string;
   Question: string;
   Answer: string;
   AnswerWithProofs?: string;
   Proofs?: CreedProof[];
+  SubQuestions?: CreedSubQuestion[];
 }
 
 interface CreedFile {
@@ -147,6 +154,29 @@ function proofsToReferences(proofs: CreedProof[]): ParsedReference[] {
 }
 
 /**
+ * Extract ParsedReferences from SubQuestion answers.
+ *
+ * References are embedded in answer text in traditional format:
+ *   "Yes: For there is a spirit in man... Job 32:8."
+ *   "No: This people have I formed for myself, Isa. 43:21."
+ *
+ * We run the full answer text through parseReferences() to extract them.
+ */
+function subQuestionsToReferences(subQuestions: CreedSubQuestion[]): ParsedReference[] {
+  const allRefs: ParsedReference[] = [];
+  for (const sq of subQuestions) {
+    // References are embedded in prose: "Yes: ...understanding, Job 32:8."
+    // Use detectReferences() to extract them from the answer text, then parse each.
+    const detected = detectReferences(sq.Answer);
+    for (const ref of detected) {
+      const parsed = parseReferences(ref);
+      allRefs.push(...parsed);
+    }
+  }
+  return allRefs;
+}
+
+/**
  * Load and parse a Creeds.json format file.
  */
 function loadCreedFile(filePath: string): CreedFile {
@@ -232,13 +262,14 @@ async function importQuestion(
   workId: string,
   question: CreedQuestion
 ): Promise<{ referencesCreated: number; unresolvedCount: number }> {
+  const positionIndex = parseInt(String(question.Number), 10);
   const contentText = `Q. ${question.Question}\n\nA. ${question.Answer}`;
 
   const unit = await prisma.workUnit.create({
     data: {
       workId,
       type: 'question',
-      positionIndex: question.Number,
+      positionIndex,
       title: `Q${question.Number}`,
       contentText,
     },
@@ -247,8 +278,17 @@ async function importQuestion(
   let referencesCreated = 0;
   let unresolvedCount = 0;
 
+  let parsed: ParsedReference[] = [];
+
   if (question.Proofs && question.Proofs.length > 0) {
-    const parsed = proofsToReferences(question.Proofs);
+    // Standard Creeds.json format: explicit OSIS proof references
+    parsed = proofsToReferences(question.Proofs);
+  } else if (question.SubQuestions && question.SubQuestions.length > 0) {
+    // HenrysCatechism format: references embedded in SubQuestion answer text
+    parsed = subQuestionsToReferences(question.SubQuestions);
+  }
+
+  if (parsed.length > 0) {
     const { resolved, unresolved } = await resolveReferences(parsed);
 
     if (unresolved.length > 0) {
@@ -256,7 +296,11 @@ async function importQuestion(
       unresolvedCount += unresolved.length;
     }
 
+    // Deduplicate verse IDs before inserting
+    const seenVerseIds = new Set<string>();
     for (const ref of resolved) {
+      if (seenVerseIds.has(ref.verseId)) continue;
+      seenVerseIds.add(ref.verseId);
       await prisma.reference.create({
         data: { sourceUnitId: unit.id, bibleVerseId: ref.verseId },
       });
@@ -290,19 +334,31 @@ export async function importCatechism(options: ImportOptions): Promise<void> {
     let totalReferences = 0;
     let totalUnresolved = 0;
 
-    for (const question of creed.Data) {
+    let imported = 0;
+    for (let i = 0; i < creed.Data.length; i++) {
+      const question = creed.Data[i];
+      const questionNumber = parseInt(String(question.Number), 10);
+
+      // Skip placeholder items (Number="?", Question="?", etc.)
+      if (isNaN(questionNumber) || !question.Question || question.Question === '?' || !question.Answer || question.Answer === '?') {
+        logger.warn(`Skipping item ${i} with Number="${question.Number}" (placeholder or invalid)`);
+        continue;
+      }
+
       const result = await importQuestion(workId, question);
       totalReferences += result.referencesCreated;
       totalUnresolved += result.unresolvedCount;
+      imported++;
 
-      if (question.Number % 25 === 0) {
-        logger.info(`Progress: ${question.Number}/${creed.Data.length}`);
+      if (questionNumber % 25 === 0) {
+        logger.info(`Progress: ${questionNumber}/${creed.Data.length}`);
       }
     }
 
     logger.success('Import complete', {
       title,
-      questionsImported: creed.Data.length,
+      questionsImported: imported,
+      questionsSkipped: creed.Data.length - imported,
       referencesLinked: totalReferences,
       unresolvedReferences: totalUnresolved,
     });
