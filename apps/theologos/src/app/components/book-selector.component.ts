@@ -2,7 +2,7 @@ import { Component, inject, signal, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 
-interface Book {
+export interface Book {
   name: string;
   abbreviation: string;
   testament: string;

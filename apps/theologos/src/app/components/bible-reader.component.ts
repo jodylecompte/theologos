@@ -1,7 +1,7 @@
 import { Component, inject, signal, viewChild, Input, Output, EventEmitter, AfterViewInit, effect, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { BookSelectorComponent, type BookSelection } from './book-selector.component';
+import { BookSelectorComponent, type BookSelection, type Book } from './book-selector.component';
 
 interface BibleVerse {
   number: number;
@@ -393,31 +393,64 @@ export class BibleReaderComponent implements AfterViewInit {
     }
   }
 
+  private getBooks(): Book[] {
+    return this.selector()?.books() ?? [];
+  }
+
+  private getCurrentBook(): Book | undefined {
+    return this.getBooks().find(b => b.name === this.bookName());
+  }
+
   canGoPrevious(): boolean {
-    return this.chapterNumber() > 1;
+    if (this.chapterNumber() > 1) return true;
+    const currentBook = this.getCurrentBook();
+    if (!currentBook) return false;
+    return currentBook.canonicalOrder > 1;
   }
 
   canGoNext(): boolean {
-    // Will be limited by actual chapter count from API
-    return true;
+    const currentBook = this.getCurrentBook();
+    if (!currentBook) return false;
+    if (this.chapterNumber() < currentBook.chapterCount) return true;
+    const books = this.getBooks();
+    const maxOrder = Math.max(...books.map(b => b.canonicalOrder));
+    return currentBook.canonicalOrder < maxOrder;
   }
 
   async previousChapter() {
-    if (this.canGoPrevious()) {
+    if (!this.canGoPrevious()) return;
+
+    if (this.chapterNumber() > 1) {
       this.chapterNumber.update(ch => ch - 1);
-      await this.loadChapter();
-      this.navigationChange.emit({ book: this.bookName(), chapter: this.chapterNumber() });
+    } else {
+      const books = this.getBooks();
+      const currentBook = this.getCurrentBook();
+      if (!currentBook) return;
+      const prevBook = books.find(b => b.canonicalOrder === currentBook.canonicalOrder - 1);
+      if (!prevBook) return;
+      this.bookName.set(prevBook.name);
+      this.chapterNumber.set(prevBook.chapterCount);
     }
+
+    await this.loadChapter();
+    this.navigationChange.emit({ book: this.bookName(), chapter: this.chapterNumber() });
   }
 
   async nextChapter() {
-    this.chapterNumber.update(ch => ch + 1);
-    try {
-      await this.loadChapter();
-      this.navigationChange.emit({ book: this.bookName(), chapter: this.chapterNumber() });
-    } catch (err) {
-      // If chapter doesn't exist, go back
-      this.chapterNumber.update(ch => ch - 1);
+    if (!this.canGoNext()) return;
+
+    const currentBook = this.getCurrentBook();
+    if (currentBook && this.chapterNumber() >= currentBook.chapterCount) {
+      const books = this.getBooks();
+      const nextBook = books.find(b => b.canonicalOrder === currentBook.canonicalOrder + 1);
+      if (!nextBook) return;
+      this.bookName.set(nextBook.name);
+      this.chapterNumber.set(1);
+    } else {
+      this.chapterNumber.update(ch => ch + 1);
     }
+
+    await this.loadChapter();
+    this.navigationChange.emit({ book: this.bookName(), chapter: this.chapterNumber() });
   }
 }
