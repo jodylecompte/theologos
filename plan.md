@@ -5,6 +5,14 @@ the import pipeline ahead of v1 launch.
 
 ---
 
+## Current Step
+
+**Phase 2.1 — Importer consolidation: shared infrastructure + strategy pattern**
+
+---
+
+---
+
 ## Context & Principles
 
 - **LLM is preprocessing, not runtime.** The LLM is used to produce committed

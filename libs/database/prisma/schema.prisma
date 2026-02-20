@@ -81,19 +81,35 @@ model BibleTextSegment {
   @@index([translationId])
 }
 
+enum WorkType {
+  creed
+  catechism
+  confession
+  book
+}
+
 model Work {
   id        String     @id @default(uuid())
   title     String
   author    String?
-  type      String
+  type      WorkType
   tradition String?
-  pdfPath   String?    // Path to source PDF file (e.g., "pdfs/loveliness-of-christ.pdf")
   units     WorkUnit[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 
   @@index([type])
   @@index([tradition])
+}
+
+enum WorkUnitType {
+  section      // creed sections; confession sections
+  question     // catechism Q&A
+  article      // canon-format confession articles
+  chapter      // outer container for books and chaptered confessions
+  paragraph    // body text block in books
+  heading      // heading block in books (level stored in metadata)
+  blockquote   // blockquote block in books
 }
 
 enum WorkUnitStatus {
@@ -109,14 +125,15 @@ model WorkUnit {
   parentUnit    WorkUnit?       @relation("UnitHierarchy", fields: [parentUnitId], references: [id])
   parentUnitId  String?
   children      WorkUnit[]      @relation("UnitHierarchy")
-  type          String
+  type          WorkUnitType
   positionIndex Int
-  pdfPageNumber Int?            // PDF page number (1-based) for this WorkUnit
+  sourcePage    Int?            // Physical source page this block originated from (books only)
   title         String?
-  contentText   String          // Auto-generated normalized text from imports
-  editedText    String?         // Manual edit override (when present, overrides contentText)
+  contentText   String
+  editedText    String?         // Manual edit override; when present takes precedence over contentText
+  metadata      Json?           // Structured extras: footnotes [{mark, text}], heading level, etc.
   status        WorkUnitStatus  @default(AUTO)
-  flags         String[]        @default([]) // Review flags: HEADING_SUSPECT, FOOTNOTE_SUSPECT, METADATA_SUSPECT
+  flags         String[]        @default([])
   references    Reference[]
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
@@ -124,8 +141,9 @@ model WorkUnit {
   @@index([workId])
   @@index([parentUnitId])
   @@index([type])
-  @@index([workId, positionIndex]) // Fast neighbor lookup
-  @@index([status, flags]) // Fast filtering by status and flags
+  @@index([workId, positionIndex])
+  @@index([status])
+  @@index([sourcePage])
 }
 
 model Reference {
