@@ -1,0 +1,47 @@
+{
+  "metadata": {
+    "type": "book",
+    "title": "The Loveliness of Christ",
+    "author": "Samuel Rutherford",
+    "sourceFormat": "pdf",
+    "sourceFile": "data/loveliness_2012.pdf"
+  },
+  "chapters": [
+    {
+      "title": "PREFACE",
+      "blocks": [
+        { "type": "paragraph", "content": "When we read The Loveliness of Christ it is as though a curtain is raised for us, enabling us to observe a man so taken up with his Lord that we want to kneel with him. It is not a book to read straight through, but to graze in, appropriating what we need, going back during a trial and seeing what we missed on our first reading. It is a book to mark in, as I did, with “so true,” and “Lord, let it be my experience too.” We send it out hoping it will bless and strengthen you.", "sourcePage": 3 },
+        { "type": "paragraph", "content": "You can tell that my wife Bessie has carried her copy of The Loveliness of Christ with her for many years. In celebration of our twenty-five years together, we were in London, England in 1977. I made a special trip to Samuel Bagster & Sons in order to get more copies for her to give to friends. The booklet was out of print and there was no intention to reprint it. So at that time, I obtained permission to reprint it.", "sourcePage": 3 },
+        { "type": "paragraph", "content": "Now, thirteen years later, we have put together these few copies for special friends. The first two copies will go to special sisters in our Lord Jesus Christ, Dorothy Flaxman and Alice Crockett. Samuel Rutherford expresses well what we would like to say to them.", "sourcePage": 3 },
+        { "type": "paragraph", "content": "Anne Cousin wrote a seventeen stanza hymn using phrases from The Letters of Samuel Rutherford called “The Sands of Time are Sinking.” Here we reprint two of those stanzas; you may recognize some phrases as you read through The Loveliness of Christ.", "sourcePage": 4 },
+        { "type": "paragraph", "content": "The sands of time are sinking, The dawn of heaven breaks The Summer morn I’ve sighed for, The fair sweet morn awakes Dark, dark hath been the midnight, But dayspring is at hand, And glory, glory dwelleth In Emmanuel’s land.", "sourcePage": 4 },
+        { "type": "paragraph", "content": "     The Bride eyes not her garment, But her dear bridegroom’s face; I will not gaze at glory, But on my King of grace; Not at the crown He giveth But on His pierced hand. The Lamb is all the glory Of Emmanuel’s land.", "sourcePage": 4 },
+        { "type": "paragraph", "content": "With gratefulness to all of you, Jim and Bessie Wilson", "sourcePage": 4 }
+      ],
+      "blocks": [
+        {
+          "type": "heading",
+          "level": 1,
+          "content": "BIOGRAPHICAL BACKGROUND",
+          "sourcePage": 5
+        },
+        { "type": "paragraph", "content": "Samuel Rutherford was born about the year 1600 in the Borders of Scotland. At the age of seventeen, he entered Edinburgh College, where he received his Master of Arts Degree in 1621.", "sourcePage": 5 },
+        { "type": "paragraph", "content": "Soon after, he was appointed Professor of Humanity, which appointment he held until 1625.", "sourcePage": 5 },
+        { "type": "paragraph", "content": "Then for two years he studied on his own, mostly in the area of theology.", "sourcePage": 5 },
+        { "type": "paragraph", "content": "We have no evidence that he was converted in early life. We have a suggestion from his writings that it was as an adult.", "sourcePage": 5 },
+        { "type": "paragraph", "content": "“Like a fool as I was, I suffered my sun to be high in the heaven, and near afternoon, before I ever took the gate by the end.”", "sourcePage": 5 },
+        { "type": "paragraph", "content": "In 1627, he took a church in southwestern Scotland near the Firth of Solway.", "sourcePage": 5 },
+        { "type": "paragraph", "content": "He pastored here with little fruit in the common people, although he labored night and day for nine years.", "sourcePage": 5 },
+        { "type": "paragraph", "content": "However, there was fruit among the educated.", "sourcePage": 5 },
+        { "type": "paragraph", "content": "His writings and preaching began to get attention.", "sourcePage": 5 },
+        { "type": "paragraph", "content": "His voice was shrill and his elocution poor; however, according to Woodrow’s Church History he was “one of the most moving and affectionate preachers in his time, or perhaps in any age of the church.” And from another source, “Many times I thought he would have flown out of the pulpit when he came to speak of Jesus Christ.” (MacCrie’s Sketches)", "sourcePage": 5 },
+        { "type": "paragraph", "content": "He had a great burden for the lost.", "sourcePage": 5 },
+        { "type": "paragraph", "content": "“I would lay my dearest joys in the gap between you and eternal destruction,” and “My witness is in heaven, your heaven would be two heavens to me, and your salvation, two salvations.”", "sourcePage": 5 },
+        { "type": "paragraph", "content": "He wrote 220 letters in a two-year period when he was in exile in Aberdeen for refusing to sign the acts of Episcopacy, and for his writings against the Arminians.", "sourcePage": 5 },
+        { "type": "paragraph", "content": "Although he was not in prison, he was not allowed to leave the city.", "sourcePage": 5 },
+        { "type": "paragraph", "content": "In 1639, he became Principal of the New College in St. Andrews.", "sourcePage": 5 },
+        { "type": "paragraph", "content": "In 1643, he was one of the Commissioners from the Church of Scotland to the Westminster", "sourcePage": 5 }
+      ]
+    }
+  ]
+}

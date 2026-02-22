@@ -1,0 +1,40 @@
+{
+  "metadata": {
+    "type": "book",
+    "title": "Loveliness",
+    "author": "Robert Burns",
+    "sourceFormat": "pdf",
+    "sourceFile": "data/loveliness_2012.pdf"
+  },
+  "chapters": [
+    {
+      "title": "The Letters",
+      "blocks": [
+        { "type": "paragraph", "content": "The great Master Gardener, the Father of our Lord Jesus Christ, in a wonderful providence1, with His own hand, planted me here, where by His grace, in this part of His vineyard, I grow; and here I will abide till the great Master of the vineyard think fit to transplant me.", "sourcePage": 7 },
+        { "type": "paragraph", "content": "If your Lord call you to suffering, be not dismayed; there shall be a new allowance of the King for you when ye come to it. One of the softest pillows Christ hath is laid under His witnesses’ head, though often they must set down their bare feet among thorns.", "sourcePage": 7 },
+        { "type": "paragraph", "content": "God hath called you to Christ’s side, and the wind is now in Christ’s face in this land; and seeing ye are with Him, ye cannot expect the lee-side or the sunny side of the brae.2", "sourcePage": 7 },
+        { "type": "paragraph", "content": "He delighteth to take up fallen bairns3 and to mend broken brows: binding up of wounds is His office.", "sourcePage": 7 },
+        { "type": "paragraph", "content": " Wants4 are my best riches, for I have these supplied by Christ.", "sourcePage": 7 },
+        { "type": "paragraph", "content": "I hope to over-hope and over-believe my troubles.", "sourcePage": 7 }
+      ]
+    }
+  ],
+  "footnotes": [
+    {
+      "mark": "1",
+      "text": "providence - provision, supply"
+    },
+    {
+      "mark": "2",
+      "text": "brae - hillside, hill, any slope"
+    },
+    {
+      "mark": "3",
+      "text": "bairns - children"
+    },
+    {
+      "mark": "4",
+      "text": "want - be without"
+    }
+  ]
+}

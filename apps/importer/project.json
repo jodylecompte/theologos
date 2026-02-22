@@ -206,6 +206,15 @@
         "command": "node -r @swc-node/register apps/importer/src/tools/extract-book-pdf.ts",
         "cwd": "{workspaceRoot}"
       }
+    },
+    "book:normalize": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["^build"],
+      "options": {
+        "command": "node -r @swc-node/register apps/importer/src/tools/normalize-book.ts",
+        "cwd": "{workspaceRoot}",
+        "timeout": 7200000
+      }
     }
   },
   "tags": ["scope:backend", "type:app"]
