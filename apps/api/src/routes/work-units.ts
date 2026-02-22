@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../../../../libs/database/src/index';
 import type { WorkUnitStatus } from '../../../../libs/database/src/__generated__';
+import { WorkUnitType } from '../../../../libs/database/src/__generated__';
 import type { Prisma } from '../../../../libs/database/src/__generated__';
 
 const router = Router();
@@ -36,17 +37,18 @@ router.get('/books/:bookId', async (req, res) => {
       };
     }
 
+    const w = where as Record<string, unknown>;
     if (type && typeof type === 'string') {
-      where.type = type;
+      w.type = type;
     } else {
       // Default unit type depends on the work's type:
-      //   book → 'page'  (exclude empty chapter container units)
-      //   catechism/confession/anything else → 'question'
+      //   book → paragraph  (exclude empty chapter container units)
+      //   catechism/confession/anything else → question
       const work = await prisma.work.findUnique({
         where: { id: bookId },
         select: { type: true },
       });
-      where.type = work?.type === 'book' ? 'page' : 'question';
+      w.type = work?.type === 'book' ? WorkUnitType.paragraph : WorkUnitType.question;
     }
 
     // Parse pagination
@@ -70,7 +72,6 @@ router.get('/books/:bookId', async (req, res) => {
       select: {
         id: true,
         positionIndex: true,
-        pdfPageNumber: true,
         title: true,
         status: true,
         flags: true,
@@ -177,7 +178,6 @@ router.get('/:workUnitId', async (req, res) => {
         workId: workUnit.workId,
         type: workUnit.type,
         positionIndex: workUnit.positionIndex,
-        pdfPageNumber: workUnit.pdfPageNumber,
         title: workUnit.title,
         contentText: workUnit.contentText,
         editedText: workUnit.editedText,

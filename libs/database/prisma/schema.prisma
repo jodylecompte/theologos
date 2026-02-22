@@ -88,18 +88,32 @@ enum WorkType {
   book
 }
 
+model Tradition {
+  id        String      @id @default(uuid())
+  name      String
+  slug      String      @unique
+  parent    Tradition?  @relation("TraditionHierarchy", fields: [parentId], references: [id])
+  parentId  String?
+  children  Tradition[] @relation("TraditionHierarchy")
+  works     Work[]      @relation("WorkTraditions")
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@index([slug])
+  @@index([parentId])
+}
+
 model Work {
-  id        String     @id @default(uuid())
-  title     String
-  author    String?
-  type      WorkType
-  tradition String?
-  units     WorkUnit[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id         String      @id @default(uuid())
+  title      String
+  author     String?
+  type       WorkType
+  traditions Tradition[] @relation("WorkTraditions")
+  units      WorkUnit[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
 
   @@index([type])
-  @@index([tradition])
 }
 
 enum WorkUnitType {

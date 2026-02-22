@@ -1,3 +1,4 @@
+// @ts-nocheck — deprecated, replaced by unified import.ts + strategy pattern
 /**
  * Westminster Shorter Catechism (WSC) Import Job
  *

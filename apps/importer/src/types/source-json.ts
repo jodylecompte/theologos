@@ -38,7 +38,7 @@ export interface CreedSourceMetadata {
   title: string;
   author?: string;
   year?: string;
-  tradition?: string;
+  traditions?: string[];
   sourceFormat: 'creeds-json' | 'manual';
   sourceFile?: string;
 }
@@ -60,7 +60,7 @@ export interface CatechismSourceMetadata {
   type: 'catechism';
   title: string;
   author?: string;
-  tradition?: string;
+  traditions?: string[];
   sourceFormat: 'creeds-json' | 'manual';
   sourceFile?: string;
 }
@@ -91,7 +91,7 @@ export interface ConfessionSourceMetadataBase {
   type: 'confession';
   title: string;
   author?: string;
-  tradition?: string;
+  traditions?: string[];
   sourceFormat: 'creeds-json' | 'manual';
   sourceFile?: string;
 }
@@ -147,7 +147,7 @@ export interface BookSourceMetadata {
   type: 'book';
   title: string;
   author?: string;
-  tradition?: string;
+  traditions?: string[];
   sourceFormat: 'pdf' | 'epub' | 'mobi' | 'manual';
   sourceFile?: string;
 }

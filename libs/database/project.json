@@ -43,6 +43,13 @@
         "cwd": "{workspaceRoot}"
       }
     },
+    "prisma:seed": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node -r @swc-node/register libs/database/prisma/seed.ts",
+        "cwd": "{workspaceRoot}"
+      }
+    },
     "prisma:studio": {
       "executor": "nx:run-commands",
       "options": {

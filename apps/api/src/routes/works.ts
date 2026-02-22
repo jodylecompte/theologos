@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { prisma } from '../../../../libs/database/src/index';
+import type { WorkUnitType } from '../../../../libs/database/src/__generated__';
 
 const router = Router();
 
@@ -29,6 +30,9 @@ router.get('/', async (req, res) => {
         _count: {
           select: { units: true },
         },
+        traditions: {
+          select: { slug: true },
+        },
       },
       orderBy: {
         title: 'asc',
@@ -53,7 +57,7 @@ router.get('/', async (req, res) => {
           title: work.title,
           author: work.author,
           type: work.type,
-          tradition: work.tradition,
+          traditions: work.traditions.map(t => t.slug),
           slug: titleToSlug(work.title),
           unitCount: work._count.units,
           reviewedCount,
@@ -161,7 +165,6 @@ router.get('/:slug', async (req, res) => {
       title: work.title,
       author: work.author,
       type: work.type,
-      tradition: work.tradition,
       units, // Top-level units (chapters/questions)
       totalUnits: units.length,
       totalPages: totalPages > 0 ? totalPages : units.length, // Pages for books, units for catechisms
@@ -317,7 +320,7 @@ router.get('/:slug/units/:unitNumber', async (req, res) => {
 
     res.json({
       workSlug: slug,
-      workTitle: work.title,
+      workTitle: matched.title,
       number: unitNumber,
       primaryText,
       secondaryText,
@@ -355,7 +358,7 @@ router.get('/:slug/pages/:pageNumber', async (req, res) => {
       where: {
         workId: work.id,
         positionIndex: pageNumber,
-        type: 'page', // Only get page-level units
+        type: 'page' as WorkUnitType, // legacy — page type no longer exists; route returns 404
       },
       include: {
         parentUnit: true, // Include chapter info
@@ -454,10 +457,10 @@ router.get('/:slug/pages/:pageNumber', async (req, res) => {
 
     res.json({
       workSlug: slug,
-      workTitle: work.title,
+      workTitle: matched.title,
       pageNumber,
-      chapterNumber: page.parentUnit?.positionIndex, // Chapter this page belongs to
-      chapterTitle: page.parentUnit?.title,
+      chapterNumber: (page as any).parentUnit?.positionIndex,
+      chapterTitle: (page as any).parentUnit?.title,
       content: page.contentText,
       proofTexts,
     });

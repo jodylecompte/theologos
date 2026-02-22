@@ -1,0 +1,16 @@
+{
+  "metadata": {
+    "type": "creed",
+    "title": "Confession of Peter",
+    "year": "30",
+    "traditions": [
+      "ecumenical"
+    ],
+    "sourceFormat": "creeds-json"
+  },
+  "sections": [
+    {
+      "content": "Simon Peter replied, \"You are the Christ, the Son of the living God.\""
+    }
+  ]
+}

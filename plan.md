@@ -7,7 +7,7 @@ the import pipeline ahead of v1 launch.
 
 ## Current Step
 
-**Phase 2.1 — Importer consolidation: shared infrastructure + strategy pattern**
+**Phase 3 — Book Pipeline (next: 3.1 PDF extraction target)**
 
 ---
 

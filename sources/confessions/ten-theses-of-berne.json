@@ -1,0 +1,54 @@
+{
+  "metadata": {
+    "type": "confession",
+    "structure": "canon",
+    "title": "Ten Theses of Berne",
+    "author": "Berthold Haller, Ulrich Zwingli",
+    "traditions": [
+      "reformed"
+    ],
+    "sourceFormat": "creeds-json"
+  },
+  "articles": [
+    {
+      "title": "Thesis 1",
+      "content": "The holy Christian Church, whose only Head is Christ, is born of the Word of God, and abides in the same, and listens not to the voice of a stranger."
+    },
+    {
+      "title": "Thesis 2",
+      "content": "The Church of Christ makes no laws and commandments without the Word of God. Hence human traditions are no more binding on us than they are founded in the Word of God."
+    },
+    {
+      "title": "Thesis 3",
+      "content": "Christ is the only wisdom, righteousness, redemption, and satisfaction for the sins of the whole world. Hence it is a denial of Christ when we confess another ground of salvation and satisfaction."
+    },
+    {
+      "title": "Thesis 4",
+      "content": "The essential and corporeal presence of the body and blood of Christ can not be demonstrated from the Holy Scripture."
+    },
+    {
+      "title": "Thesis 5",
+      "content": "The mass as now in use, in which Christ is offered to God the Father for the sins of the living and the dead, is contrary to Scripture, a blasphemy against the most holy sacrifice, passion, and death of Christ, and on account of its abuses an abomination before God."
+    },
+    {
+      "title": "Thesis 6",
+      "content": "As Christ alone died for us, so he is also to be adored as the only Mediator and Advocate between God the Father and the believers. Therefore it is contrary to the Word of God to propose and invoke other mediators."
+    },
+    {
+      "title": "Thesis 7",
+      "content": "Scripture knows nothing of a purgatory after this life. Hence all masses and other offices for the dead are useless."
+    },
+    {
+      "title": "Thesis 8",
+      "content": "The worship of images is contrary to the Scripture. Therefore images should be abolished when they are set up as objects of adoration."
+    },
+    {
+      "title": "Thesis 9",
+      "content": "Matrimony is not forbidden in the Scripture to any class of men, but permitted to all."
+    },
+    {
+      "title": "Thesis 10",
+      "content": "Since, according to Scripture, and open fornicator must be excommunicated, it follows that unchastity and impure celibacy are more pernicious to the clergy than to any other class."
+    }
+  ]
+}

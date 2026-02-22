@@ -79,6 +79,14 @@
         }
       }
     },
+    "import": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["^build"],
+      "options": {
+        "command": "node -r @swc-node/register apps/importer/src/jobs/import.ts",
+        "cwd": "{workspaceRoot}"
+      }
+    },
     "import:web": {
       "executor": "nx:run-commands",
       "dependsOn": ["^build"],
@@ -135,6 +143,22 @@
         "cwd": "{workspaceRoot}"
       }
     },
+    "convert-creeds-json": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["^build"],
+      "options": {
+        "command": "node -r @swc-node/register apps/importer/src/tools/convert-creeds-json.ts",
+        "cwd": "{workspaceRoot}"
+      }
+    },
+    "convert-all-creeds": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["^build"],
+      "options": {
+        "command": "node -r @swc-node/register apps/importer/src/tools/convert-all-creeds.ts",
+        "cwd": "{workspaceRoot}"
+      }
+    },
     "analyze-pdf": {
       "executor": "nx:run-commands",
       "dependsOn": ["^build"],
@@ -172,6 +196,14 @@
       "dependsOn": ["^build"],
       "options": {
         "command": "node -r @swc-node/register apps/importer/src/jobs/import-book.ts",
+        "cwd": "{workspaceRoot}"
+      }
+    },
+    "book:extract": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["^build"],
+      "options": {
+        "command": "node -r @swc-node/register apps/importer/src/tools/extract-book-pdf.ts",
         "cwd": "{workspaceRoot}"
       }
     }

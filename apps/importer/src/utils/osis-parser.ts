@@ -15,11 +15,7 @@
  */
 
 import { parseReferences, type ParsedReference } from './reference-parser';
-
-interface CreedProof {
-  Id: number;
-  References: string[];
-}
+import type { OsisProofGroup } from '../types/source-json';
 
 /**
  * Parse a single OSIS token: "BookAbbrev.Chapter.Verse" e.g. "1Cor.10.31"
@@ -78,11 +74,11 @@ function osisSingleToTraditionals(osis: string): string[] {
  *   - Comma-separated refs:   "Eph.1.4,Eph.1.11"
  *   - Mixed:                  "Gen.3.6-Gen.3.8,Gen.3.13"
  */
-export function proofsToReferences(proofs: CreedProof[]): ParsedReference[] {
+export function proofsToReferences(proofs: OsisProofGroup[]): ParsedReference[] {
   const traditionals: string[] = [];
 
   for (const proof of proofs) {
-    for (const rawOsis of proof.References) {
+    for (const rawOsis of proof.references) {
       const tokens = rawOsis.split(',').map(s => s.trim());
       for (const token of tokens) {
         const converted = osisSingleToTraditionals(token);

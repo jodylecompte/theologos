@@ -8,7 +8,7 @@ interface WorkItem {
   title: string;
   author: string | null;
   type: string;
-  tradition: string | null;
+  traditions: string[];
   slug: string;
 }
 
@@ -98,8 +98,8 @@ export interface WorkSelection {
                   @if (work.author) {
                     <p class="work-author">{{ work.author }}</p>
                   }
-                  @if (work.tradition) {
-                    <p class="work-tradition">{{ work.tradition }}</p>
+                  @if (work.traditions.length > 0) {
+                    <p class="work-tradition">{{ work.traditions.join(', ') }}</p>
                   }
                 </div>
               } @empty {
@@ -401,9 +401,7 @@ export class LibraryModalComponent implements OnInit {
   // Computed values
   availableTraditions = computed(() => {
     const traditions = new Set(
-      this.allWorks()
-        .map(w => w.tradition)
-        .filter(t => t !== null) as string[]
+      this.allWorks().flatMap(w => w.traditions)
     );
     return Array.from(traditions).sort();
   });
@@ -436,7 +434,7 @@ export class LibraryModalComponent implements OnInit {
 
     // Apply tradition filter
     if (this.selectedTradition()) {
-      works = works.filter(w => w.tradition === this.selectedTradition());
+      works = works.filter(w => w.traditions.includes(this.selectedTradition()));
     }
 
     // Apply author filter

@@ -35,8 +35,14 @@ export type {
   BibleVerse,
   BibleTranslation,
   BibleTextSegment,
+  Work,
+  WorkUnit,
+  Reference,
   Prisma,
 } from './__generated__';
+
+// Re-export enums as values (required for runtime use in importers and backend)
+export { WorkType, WorkUnitType, WorkUnitStatus } from './__generated__';
 
 // Re-export text transforms for backend and frontend use
 export {

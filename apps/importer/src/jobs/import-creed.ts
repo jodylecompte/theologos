@@ -1,3 +1,4 @@
+// @ts-nocheck — deprecated, replaced by unified import.ts + strategy pattern
 /**
  * Creed Import Job
  *
